@@ -1,10 +1,14 @@
 # Tooltip Studio — Fabric 1.20.4
 
+![Tooltip Studio 图标](src/main/resources/assets/tooltipstudio/icon.png)
+
 通过 JSON 和单张贴图自定义物品提示框，支持名称居中、装饰分割线及物品与 NBT 匹配。
 
 作者：**幼幼紫、千村**。当前版本 **1.0，只支持 Minecraft 1.20.4**，为纯客户端模组。
 
 项目仓库：[uuzsx/tooltip-studio](https://github.com/uuzsx/tooltip-studio)。
+
+项目采用 [MIT 协议](LICENSE)。借用的极光示例贴图保留原有权属，详见 [素材与第三方依赖说明](THIRD_PARTY_ASSETS.md)。
 
 ## 安装
 

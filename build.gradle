@@ -44,7 +44,10 @@ java {
     withSourcesJar()
 }
 test { useJUnitPlatform() }
-jar { from('LICENSE') }
+jar {
+    from('LICENSE')
+    from('THIRD_PARTY_ASSETS.md')
+}
 
 // Developer-only rendering smoke test; excluded from the distributable jar.
 sourceSets {
