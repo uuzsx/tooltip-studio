@@ -49,6 +49,13 @@ jar {
     from('THIRD_PARTY_ASSETS.md')
 }
 
+tasks.register('exampleResourcePack', Zip) {
+    from('examples/resource-pack')
+    archiveFileName = "tooltip-studio-example-pack-${project.mod_version}+${project.minecraft_version}.zip"
+    destinationDirectory = layout.buildDirectory.dir('resourcepacks')
+}
+tasks.named('assemble') { dependsOn tasks.named('exampleResourcePack') }
+
 // Developer-only rendering smoke test; excluded from the distributable jar.
 sourceSets {
     smoke {

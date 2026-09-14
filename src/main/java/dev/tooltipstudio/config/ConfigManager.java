@@ -86,23 +86,25 @@ public final class ConfigManager {
         List<Identifier> registered = new ArrayList<>();
         try {
             Settings settings = read(directory.resolve("config.json"), Settings.class);
+            PackDefinitions packs = PackDefinitions.load(resources);
             Map<String, Style> definitions = new LinkedHashMap<>();
             try (var files = Files.list(directory.resolve("styles"))) {
                 for (Path file : files.filter(p -> p.getFileName().toString().endsWith(".json")).sorted().toList()) {
                     String name = file.getFileName().toString().replaceFirst("\\.json$", "");
                     Style.require(name.matches("[a-z0-9_-]+"), "invalid style filename: " + name);
+                    // Pack definitions also override first-install sample JSON, so replacing rare works immediately.
+                    if (packs.styles().containsKey(name)) continue;
                     Style definition = read(file, Style.class);
                     try { definition.validate(); }
                     catch (RuntimeException e) { throw new IllegalArgumentException(file.getFileName() + ": " + e.getMessage(), e); }
                     definitions.put(name, definition);
                 }
             }
+            definitions.putAll(packs.styles());
             settings.validate(definitions.keySet());
-            List<CompiledRule> rules = settings.rules().stream()
-                    .sorted(Comparator.comparingInt(Settings.Rule::priority).reversed())
-                    .map(r -> new CompiledRule(r.style(), safe(r.items()).stream().map(Settings::glob).toList(),
-                            safe(r.tags()).stream().map(t -> TagKey.of(RegistryKeys.ITEM, new Identifier(t))).toList(),
-                            List.copyOf(safe(r.rarities())), NbtMatcher.compile(r.nbt()))).toList();
+            List<CompiledRule> rules = packs.mergeRules(settings, definitions.keySet()).stream()
+                    .sorted(Comparator.comparingInt((PackDefinitions.SourcedRule r) -> r.rule().priority()).reversed())
+                    .map(ConfigManager::compile).toList();
             // Decode and validate every atlas before touching the active textures.
             List<NativeImage> images = new ArrayList<>();
             for (Style style : definitions.values()) {
@@ -167,6 +169,17 @@ public final class ConfigManager {
         }
     }
     private static <T> List<T> safe(List<T> values) { return values == null ? List.of() : values; }
+
+    private static CompiledRule compile(PackDefinitions.SourcedRule source) {
+        Settings.Rule rule = source.rule();
+        try {
+            return new CompiledRule(rule.style(), safe(rule.items()).stream().map(Settings::glob).toList(),
+                    safe(rule.tags()).stream().map(t -> TagKey.of(RegistryKeys.ITEM, new Identifier(t))).toList(),
+                    List.copyOf(safe(rule.rarities())), NbtMatcher.compile(rule.nbt()));
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException(source.source() + ": " + e.getMessage(), e);
+        }
+    }
 
     public LoadedStyle select(ItemStack stack) {
         Snapshot snapshot = current;

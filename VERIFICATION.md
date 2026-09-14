@@ -59,3 +59,18 @@
 - 发布 JAR 的图标路径指向 `assets/tooltipstudio/icon.png`，PNG 与用户提供的 logo.png 字节完全一致，尺寸为 32×32。
 - 发布 JAR 的协议标识为 `MIT`，含有完整 LICENSE 和 THIRD_PARTY_ASSETS.md，作者与版本保持为幼幼紫、千村及 1.0。
 - 主模组 class 与上次发布版本一致；本次更新涉及图标、协议、打包内容和文档，没有重复运行游戏客户端。
+
+# 1.1 资源包样式与规则验证
+
+- 验证日期：2026-09-14；Minecraft 1.20.4、Windows、JDK 17、Gradle 8.6。
+- 20 项 JUnit 测试通过（13 项已有测试 + 7 项资源包测试）。使用真实 DirectoryResourcePack 与 LifecycledResourceManagerImpl 检查 JSON 加载、资源优先级、整份规则文件覆盖、多个规则文件合并、同 priority 的稳定顺序、停用移除、错误来源提示、命名空间隔离与示例包有效性。
+- 实际客户端分别在基础 Loader 0.15.11 环境、Loader 0.19.5 + Shulker Box Tooltip 4.1.0 + Cloth Config 13.0.121 环境运行 `build runSmoke`，均输出 `SMOKE COMPLETE` 并构建成功。
+- 客户端从 examples/resource-pack 创建真实 ZIP，经 Minecraft 资源包管理器启用，执行与 F3+T 相同的完整资源重载流程；无需把样式或规则 JSON 安装到 config 目录。
+- 验证启用 ZIP 新增两套样式、木棍 ID 与 Monumenta.Location NBT 自动匹配、TooltipStyle 选择包内样式、本地与包内规则同 priority 时本地优先、未命中物品保留默认外观。
+- 额外启用高优先级目录包，验证同名样式覆盖本地示例 JSON、同路径样式覆盖低优先级包、空规则文件屏蔽低优先级包的同路径规则。
+- 完整资源重载时故意写入错误 JSON，确认错误消息含包与资源路径，且保留上一版样式及规则；缺失 PNG 同样保留旧状态，修正后恢复。
+- 停用示例包后恢复 9 套本地样式，包内独有样式和规则消失，木棍恢复默认样式。本地 config.json 前后字节一致。
+- 已查看实际游戏截图：资源包木棍样式、forest NBT 样式、原有默认样式；潜影盒框内/框外、锁定/解锁与嵌套上下文回归通过。
+- 示例包 pack_format 为 22，样式、规则与 PNG 均在 ZIP 内；不依赖 Legendary Tooltips，本模组沿用自己的单图 JSON 格式。
+
+未验证：朋友服务器完整模组组合、服务器下发资源包及长期多人会话。1.20.4 以外版本仍未适配。

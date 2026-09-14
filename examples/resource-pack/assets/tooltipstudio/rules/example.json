@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "rules": [
+    {
+      "style": "pack_forest",
+      "priority": 300,
+      "nbt": { "Monumenta.Location": "forest" }
+    },
+    {
+      "style": "pack_wood",
+      "priority": 200,
+      "tags": ["minecraft:planks"]
+    },
+    {
+      "style": "pack_wood",
+      "priority": 190,
+      "items": ["minecraft:stick"]
+    }
+  ]
+}

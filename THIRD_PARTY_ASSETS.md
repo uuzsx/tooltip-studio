@@ -11,6 +11,7 @@ Tooltip Studio 项目采用 MIT 协议，见 `LICENSE`。下述借用素材保�
 这里只进行 PNG 图集打包和必要的边框区域提取，没有修改原项目。
 图集中的深色背景像素由打包脚本生成；默认分割线复用边框顶部的像素条。
 输出路径为 `src/main/resources/assets/tooltipstudio/textures/styles/*.png`。
+`examples/resource-pack` 中的 pack_wood 与 pack_forest 示例图集分别原样取自上述 uncommon 与 mythical 图集，保留相同权属说明。
 
 极光示例图片保留原始权利归属；本项目未授予这些图片新的公开分发许可。
 后续可将每套 PNG 替换成自己的素材，并更新对应 JSON 中的区域坐标。

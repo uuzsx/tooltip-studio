@@ -4,7 +4,7 @@
   "version": "${version}",
   "name": "Tooltip Studio",
   "icon": "assets/tooltipstudio/icon.png",
-  "description": "通过 JSON 和单张贴图自定义物品提示框，支持名称居中、装饰分割线及物品与 NBT 匹配。",
+  "description": "通过配置或资源包中的 JSON 和单张贴图自定义物品提示框，支持名称居中、装饰分割线及物品与 NBT 匹配。",
   "authors": ["幼幼紫", "千村"],
   "environment": "client",
   "entrypoints": { "client": ["dev.tooltipstudio.TooltipStudioClient"] },

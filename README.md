@@ -2,9 +2,9 @@
 
 ![Tooltip Studio 图标](src/main/resources/assets/tooltipstudio/icon.png)
 
-通过 JSON 和单张贴图自定义物品提示框，支持名称居中、装饰分割线及物品与 NBT 匹配。
+通过配置或资源包中的 JSON 和单张贴图自定义物品提示框，支持名称居中、装饰分割线及物品与 NBT 匹配。
 
-作者：**幼幼紫、千村**。当前版本 **1.0，只支持 Minecraft 1.20.4**，为纯客户端模组。
+作者：**幼幼紫、千村**。当前版本 **1.1，只支持 Minecraft 1.20.4**，为纯客户端模组。
 
 项目仓库：[uuzsx/tooltip-studio](https://github.com/uuzsx/tooltip-studio)。
 
@@ -13,7 +13,7 @@
 ## 安装
 
 1. 使用 Minecraft **1.20.4 + Fabric Loader 0.15.11 或更新版**。
-2. 在游戏实例的 `mods/` 中放入 `tooltip-studio-1.0+1.20.4.jar` 和 **适用于 1.20.4 的 Fabric API**。
+2. 在游戏实例的 `mods/` 中放入 `tooltip-studio-1.1+1.20.4.jar` 和 **适用于 1.20.4 的 Fabric API**。
 3. 启动游戏。第一次运行会自动生成下面的配置目录。服务端无需安装。
 
 Fabric API 下载：<https://modrinth.com/mod/fabric-api/versions?g=1.20.4>
@@ -21,7 +21,7 @@ Fabric API 下载：<https://modrinth.com/mod/fabric-api/versions?g=1.20.4>
 ```text
 游戏实例/
 ├─ mods/
-│  └─ tooltip-studio-1.0+1.20.4.jar
+│  └─ tooltip-studio-1.1+1.20.4.jar
 └─ config/tooltipstudio/
    ├─ config.json            全局开关、默认样式、物品匹配规则
    ├─ styles/
@@ -41,6 +41,7 @@ Fabric API 下载：<https://modrinth.com/mod/fabric-api/versions?g=1.20.4>
 - 装饰支持九个锚点、偏移和前后绘制层。
 - 物品 ID/通配符、物品标签、稀有度、**NBT 路径和值**匹配，以及单件物品 NBT 覆盖。
 - 本地 PNG 和资源包贴图均可使用。JSON 和本地 PNG 修改后可直接重载。
+- 资源包可提供完整的样式 JSON、PNG 和匹配规则，启用后自动加载，停用后移除，支持 F3+T 重载。
 - 保留物品文字颜色与格式、附魔说明、原版和 Fabric 添加的 lore，以及原版收纳袋的图形 tooltip 组件。
 - 长行自动换行；位置计算包含框外装饰。极长、极高的 tooltip 超出屏幕时整体缩小以完整显示。
 - 错误 JSON、无效坐标、缺失贴图或图片尺寸不符会拒绝重载，并保留上次成功配置。首次加载失败则使用原版 tooltip。
@@ -166,6 +167,40 @@ Fabric API 下载：<https://modrinth.com/mod/fabric-api/versions?g=1.20.4>
 
 `examples/nbt-matching/` 提供完整示例配置、单条规则和测试命令。升级不会自动改写已有配置，也不会默认套用服务器专用规则。
 
+## 通过资源包添加样式（1.1 新增）
+
+将样式 JSON 放到 `assets/tooltipstudio/styles/名字.json`，并在 `texture` 中指定资源包 PNG 的资源 ID；样式字段与本地 JSON 完全相同。
+如果希望启用包就自动套用，再将匹配规则放到 `assets/tooltipstudio/rules/任意名字.json`，格式为 `{"schemaVersion":1,"rules":[...]}`。
+资源包启用后自动重载，修改内容后按 **F3+T**。本地配置不用搬走，资源包不会向 config 目录复制文件。
+
+```text
+资源包/
+├─ pack.mcmeta
+└─ assets/tooltipstudio/
+   ├─ styles/my_forest.json
+   ├─ rules/my_server.json
+   └─ textures/styles/my_forest.png
+```
+
+`my_forest.json` 中的贴图路径示例：`"texture": "tooltipstudio:textures/styles/my_forest.png"`。
+资源包规则 `my_server.json` 示例：
+
+```json
+{
+  "schemaVersion": 1,
+  "rules": [
+    {"style": "my_forest", "priority": 300, "nbt": {"Monumenta.Location": "forest"}}
+  ]
+}
+```
+
+同名样式由资源包覆盖本地定义；多个包的同路径 JSON 按游戏中的资源包顺序选择。不同规则文件合并后先比较 priority，相同 priority 时本地规则优先，资源包规则再按文件路径及数组顺序匹配。
+同路径规则文件由高优先级包整份替换，空 rules 数组可屏蔽低优先级包的该文件。全局 enabled、defaultStyle 和 nbtStyleKey 仍由本地配置控制。
+无效资源包 JSON 或贴图会保留上次成功配置。停用包时，它自带的规则和独有样式会移除；若本地规则手动引用了被移除的样式，也需要同步调整本地引用。
+
+可直接安装的完整示例和详细用法位于 [examples/resource-pack](examples/resource-pack/README.md)：普通木棍/木板使用 pack_wood，Monumenta.Location 为 forest 的物品使用 pack_forest。
+本功能参考了 [Legendary Tooltips 的资源定义加载方式](https://github.com/AHilyard/LegendaryTooltips/blob/3d3dbacb1fb90dd8480e9323a74a3c0ab6bfa4fc/src/main/java/com/anthonyhilyard/legendarytooltips/config/FrameResourceParser.java)，使用本项目自己的 JSON 格式与实现，不直接读取其 frame_definitions.json。
+
 ## 新建一套自定义样式
 
 最省事的办法：复制 `styles/rare.json` 为 `styles/my_style.json`，从源码或示例包取出 `rare.png`，放到
@@ -269,7 +304,8 @@ $env:JAVA_HOME = 'C:\Program Files\Java\jdk-17'
 .\gradlew.bat build
 ```
 
-产物在 `build/libs/tooltip-studio-1.0+1.20.4.jar`。模组元数据中的版本为 `1.0`，文件名中的 `+1.20.4` 表示适用的 Minecraft 版本。`-sources.jar` 是源码，不是游戏加载的模组文件。
+产物在 `build/libs/tooltip-studio-1.1+1.20.4.jar`。模组元数据中的版本为 `1.1`，文件名中的 `+1.20.4` 表示适用的 Minecraft 版本。`-sources.jar` 是源码，不是游戏加载的模组文件。
+构建也会生成 `build/resourcepacks/tooltip-studio-example-pack-1.1+1.20.4.zip`，可直接放进游戏的 resourcepacks 文件夹启用。
 第一次构建需要联网下载 Gradle、Minecraft 开发依赖和 Fabric。
 
 - `gradlew.bat test`：验证示例 JSON、纹理区域边界、通配符、错误配置、分割线端点保持，以及 NBT 路径、值类型、只读匹配与缺失字段处理。
@@ -289,16 +325,16 @@ Fabric 的物品文字 tooltip 回调继续生效。0.1.1 修复了与 Shulker B
 
 开发接口参考：[Fabric Yarn 1.20.4 DrawContext](https://maven.fabricmc.net/docs/yarn-1.20.4+build.3/net/minecraft/client/gui/DrawContext.html)、[TooltipComponent](https://maven.fabricmc.net/docs/yarn-1.20.4+build.3/net/minecraft/client/gui/tooltip/TooltipComponent.html)。具体构建和客户端验证见 `VERIFICATION.md`。
 
-## 从 0.1.x 更新
+## 从 1.0 或 0.1.x 更新
 
-从 mods 文件夹移除旧版 Tooltip Studio JAR，放入 `tooltip-studio-1.0+1.20.4.jar`，同一时间只保留一个版本。已有 JSON 与 PNG 配置无需迁移。需要 NBT 匹配功能时在规则中添加 `nbt`。MixinExtras 0.4.1 已内嵌，无需另外安装；Shulker Box Tooltip 仍是可选模组。
+从 mods 文件夹移除旧版 Tooltip Studio JAR，放入 `tooltip-studio-1.1+1.20.4.jar`，同一时间只保留一个版本。已有 JSON 与 PNG 配置无需迁移。需要 NBT 匹配功能时在规则中添加 `nbt`。MixinExtras 0.4.1 已内嵌，无需另外安装；Shulker Box Tooltip 仍是可选模组。
 
 开发者兼容回归：`gradlew.bat runSmoke -PcompatShulker`。此开关仅向测试运行加入 Shulker Box Tooltip 4.1.0 与 Cloth Config 13.0.121，不会打包它们。
 
 ## 日常维护
 
 主分支为 `main`，`v1.0` 标签标记首个正式版本。建议每个功能使用独立分支，修改后运行 `gradlew.bat build`，提交并推送到 GitHub。
-GitHub Actions 会在推送到 `main` 或发起 Pull Request 时使用 Java 17 自动构建、执行测试，并保存 JAR 产物 14 天；也可在 Actions 页面手动运行。
+GitHub Actions 会在推送到 `main` 或发起 Pull Request 时使用 Java 17 自动构建、执行测试，并保存 JAR 和示例资源包 ZIP 产物 14 天；也可在 Actions 页面手动运行。
 图形客户端测试 `runSmoke` 需要本地图形环境，不在自动构建中运行。
 
 仓库包含源码、示例配置、贴图、Gradle Wrapper、测试和说明文档。构建缓存、运行目录、游戏日志与存档由 `.gitignore` 排除。

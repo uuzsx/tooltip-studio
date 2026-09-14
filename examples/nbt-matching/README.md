@@ -1,6 +1,6 @@
-# Monumenta NBT 匹配示例 — Tooltip Studio 1.0 / Fabric 1.20.4
+# Monumenta NBT 匹配示例 — Tooltip Studio 1.1 / Fabric 1.20.4
 
-1. 从游戏实例 mods 文件夹移除旧版 Tooltip Studio JAR，安装 1.0，仅保留一个版本。
+1. 从游戏实例 mods 文件夹移除旧版 Tooltip Studio JAR，安装 1.1，仅保留一个版本。
 2. 打开游戏实例 `config/tooltipstudio/config.json`。将 `forest-rule.json` 中的对象加进现有 `rules` 数组，与相邻对象用逗号分隔。
 3. 进入世界，执行 `/tooltipstudio reload`，然后悬停 `Monumenta.Location` 值为 `forest` 的服务器物品。
 

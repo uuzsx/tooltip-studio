@@ -16,6 +16,10 @@ public record Settings(int schemaVersion, boolean enabled, String defaultStyle,
         Style.require(schemaVersion == 1, "schemaVersion must be 1");
         Style.require(styles.contains(defaultStyle), "unknown defaultStyle: " + defaultStyle);
         Style.require(nbtStyleKey != null, "nbtStyleKey is required (empty string disables the override)");
+        validateRules(rules, styles);
+    }
+
+    public static void validateRules(List<Rule> rules, Set<String> styles) {
         Style.require(rules != null && rules.size() <= 4096, "rules must be an array (at most 4096)");
         for (Rule rule : rules) {
             Style.require(rule != null && styles.contains(rule.style), "rule references an unknown style");
