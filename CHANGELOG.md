@@ -1,3 +1,10 @@
+# 1.2
+
+- 本地 `config/tooltipstudio/styles/` 与资源包 `assets/tooltipstudio/styles/` 支持多层目录，样式 ID 使用相对路径去掉 `.json`，例如 `monumenta/forest`。
+- 匹配规则的 style、全局 defaultStyle 与单件物品 TooltipStyle 均支持分类路径，`/tooltipstudio list` 显示完整 ID。旧的平铺样式与引用保持有效。
+- 资源包覆盖按完整样式路径处理，不同目录中的同名文件互不覆盖；非法路径或失效引用仍拒绝重载并保留上次成功配置。
+- 更新完整示例资源包，用 `monumenta/forest` 演示 Monumenta.Location 匹配，保留旧的 pack_forest 示例 ID 和原有 PNG。
+
 # 1.1
 
 - 新增资源包样式 JSON 加载：`assets/tooltipstudio/styles/名字.json`，使用现有单图样式格式。

@@ -26,9 +26,8 @@ public record PackDefinitions(Map<String, Style> styles, List<RuleFile> ruleFile
         Map<String, Style> styles = new LinkedHashMap<>();
         for (var entry : files(resources, "styles")) {
             String source = source(entry);
-            String name = entry.getKey().getPath().substring("styles/".length()).replaceFirst("\\.json$", "");
             try {
-                Style.require(name.matches("[a-z0-9_-]+"), "style filename must use lowercase letters, digits, _ or - without subfolders");
+                String name = StyleFiles.id(entry.getKey().getPath().substring("styles/".length()));
                 Style style = read(entry.getValue(), Style.class);
                 style.validate();
                 Style.require(!style.texture().startsWith("local:"), "resource-pack styles must use a resource texture ID, not local:");

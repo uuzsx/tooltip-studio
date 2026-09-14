@@ -22,7 +22,7 @@ public record Settings(int schemaVersion, boolean enabled, String defaultStyle,
     public static void validateRules(List<Rule> rules, Set<String> styles) {
         Style.require(rules != null && rules.size() <= 4096, "rules must be an array (at most 4096)");
         for (Rule rule : rules) {
-            Style.require(rule != null && styles.contains(rule.style), "rule references an unknown style");
+            Style.require(rule != null && styles.contains(rule.style), "rule references an unknown style: " + (rule == null ? "null" : rule.style));
             Style.require(hasValues(rule.items) || hasValues(rule.tags) || hasValues(rule.rarities)
                             || (rule.nbt != null && !rule.nbt.isEmpty()),
                     "rule requires items, tags, rarities, or nbt");

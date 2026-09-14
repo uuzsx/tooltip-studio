@@ -1,11 +1,11 @@
 # Tooltip Studio 资源包示例
 
-需要 **Tooltip Studio 1.1 + Fabric / Minecraft 1.20.4**。这是资源包，放进游戏实例的 `resourcepacks` 文件夹，在游戏“选项 → 资源包”中启用；无需修改本地配置。
+需要 **Tooltip Studio 1.2 + Fabric / Minecraft 1.20.4**。这是资源包，放进游戏实例的 `resourcepacks` 文件夹，在游戏“选项 → 资源包”中启用；无需修改本地配置。新版示例使用 1.2 新增的分类路径，旧版模组需要先升级。
 
 启用后：
 
 - 普通木棍和属于 `minecraft:planks` 标签的木板使用 `pack_wood` 样式。
-- 任意基底的物品，只要客户端 NBT 中 `Monumenta.Location` 精确为 `forest`，就使用 `pack_forest` 样式。
+- 任意基底的物品，只要客户端 NBT 中 `Monumenta.Location` 精确为 `forest`，就使用 `monumenta/forest` 样式。
 - 其他物品继续使用现有规则与默认样式。
 
 如果物品有有效的 `TooltipStyle`，它仍具有最高优先级；自定义本地规则的 priority 更高时，也会优先于本示例规则。
@@ -19,7 +19,9 @@
 └─ assets/tooltipstudio/
    ├─ styles/
    │  ├─ pack_wood.json
-   │  └─ pack_forest.json
+   │  ├─ pack_forest.json         保留旧样式 ID
+   │  └─ monumenta/
+   │     └─ forest.json          分类样式 ID：monumenta/forest
    ├─ rules/
    │  └─ example.json
    └─ textures/styles/
@@ -29,10 +31,13 @@
 
 打包时让 `pack.mcmeta` 直接位于 ZIP 根目录，不要再套一层文件夹。
 
-`assets/tooltipstudio/styles/名字.json` 使用与本地 `config/tooltipstudio/styles/` 相同的样式 JSON 格式，文件名即样式 ID。
-名字只用小写英文字母、数字、下划线和连字符；样式 JSON 不放子文件夹。推荐加上自己的前缀，例如 `myserver_forest`，避免与其他包同名。
+样式使用与本地 `config/tooltipstudio/styles/` 相同的 JSON 格式，支持多层文件夹。样式 ID 是相对于 `styles/` 的完整路径，去掉末尾 `.json`。
+例如 `assets/tooltipstudio/styles/monumenta/forest.json` 对应 `"style": "monumenta/forest"`；再分一层 `monumenta/ring3/forest.json` 就写 `monumenta/ring3/forest`。同名文件可以分别放在不同分类下，互不覆盖。
+每层目录和文件名只用小写英文字母、数字、下划线和连字符，引用中统一使用 `/`；不加 `styles/`、`.json`、命名空间、磁盘路径、`./` 或 `../`。路径始终从 styles 目录开始，不相对于规则文件。
+本地 `config/tooltipstudio/styles/monumenta/forest.json` 也使用 `monumenta/forest`。`defaultStyle`、NBT `TooltipStyle` 同样支持完整路径；`/tooltipstudio list` 可查看已加载的路径。原有平铺文件与引用无需迁移，移动已有文件后须同步修改引用。
 PNG 可以放在资源包中任意合法命名空间路径，例如 `assets/myserver/textures/tooltips/forest.png`，对应 `texture` 为 `myserver:textures/tooltips/forest.png`。
 资源包样式不能使用 `local:`；背景、边框、分割线与装饰仍从同一张 PNG 中取区域，所有切片参数保持原用法。
+样式分类与贴图位置独立；本例 `monumenta/forest` 和保留的 `pack_forest` 都引用已有的 `tooltipstudio:textures/styles/pack_forest.png`，无需复制图片。
 
 只有样式 JSON 时会注册新样式，还需要通过规则、defaultStyle 或物品 TooltipStyle 选用它。本例已经附带自动匹配规则。
 
@@ -45,7 +50,7 @@ PNG 可以放在资源包中任意合法命名空间路径，例如 `assets/myse
   "schemaVersion": 1,
   "rules": [
     {
-      "style": "pack_forest",
+      "style": "monumenta/forest",
       "priority": 300,
       "nbt": { "Monumenta.Location": "forest" }
     }
@@ -57,7 +62,7 @@ PNG 可以放在资源包中任意合法命名空间路径，例如 `assets/myse
 
 ## 覆盖与重载
 
-1. 同名样式：启用的资源包覆盖本地 styles JSON；多个资源包中同路径文件按 Minecraft 的资源包优先级选择，上方优先。
+1. 完整样式 ID 相同：启用的资源包覆盖本地 styles JSON；多个资源包中同路径文件按 Minecraft 的资源包优先级选择，上方优先。`forest` 与 `monumenta/forest` 是两个不同样式。
 2. 同路径规则 JSON：高优先级资源包整份替换低优先级文件，不拼接两份数组。用 `{"schemaVersion":1,"rules":[]}` 可以屏蔽低优先级包的同路径规则文件。
 3. 不同路径规则 JSON：合并到本地规则中，按 priority 从高到低匹配。相同 priority 时本地规则在前，资源包规则按文件路径字典序排列，同文件按数组顺序。
 4. 启用、停用或重新排序资源包时自动重载。修改资源包文件后按 **F3+T**；`/tooltipstudio reload` 会重读当前已加载的资源与本地配置，但不会扫描启用新资源包。
@@ -76,7 +81,7 @@ PNG 可以放在资源包中任意合法命名空间路径，例如 `assets/myse
 /give @s minecraft:diamond{Monumenta:{Location:"forest"},display:{Lore:['{"text":"Resource pack tooltip","italic":false}']}}
 ```
 
-第一件使用 pack_wood，第二件使用 pack_forest。服务器上直接悬停已有物品即可；客户端需要收到对应 NBT 字段。
+第一件使用 pack_wood，第二件使用 monumenta/forest。服务器上直接悬停已有物品即可；客户端需要收到对应 NBT 字段。
 
 ## 格式与素材说明
 

@@ -94,6 +94,32 @@ class PackDefinitionsTest {
         }
     }
 
+    @Test void nestedPackStylesUseFullPathsForRulesAndPackOverrides() throws Exception {
+        write("low", "styles/forest.json", style(100));
+        write("low", "styles/monumenta/forest.json", "{broken");
+        write("low", "styles/other/region/forest.json", style(140));
+        write("high", "styles/monumenta/forest.json", style(160));
+        write("low", "rules/monumenta/location.json", """
+                {"schemaVersion":1,"rules":[{"style":"monumenta/forest","nbt":{"Monumenta.Location":"forest"}}]}
+                """);
+        try (var manager = manager("low", "high")) {
+            var packs = PackDefinitions.load(manager);
+            assertEquals(Set.of("forest", "monumenta/forest", "other/region/forest"), packs.styles().keySet());
+            assertEquals(100, packs.styles().get("forest").minWidth());
+            assertEquals(160, packs.styles().get("monumenta/forest").minWidth());
+            assertEquals(140, packs.styles().get("other/region/forest").minWidth());
+            assertEquals("monumenta/forest", packs.mergeRules(LOCAL, packs.styles().keySet()).get(0).rule().style());
+        }
+    }
+
+    @Test void invalidNestedPackPathReportsFullSource() throws Exception {
+        write("bad", "styles/monumenta/forest.extra.json", style(100));
+        try (var manager = manager("bad")) {
+            var error = assertThrows(IllegalArgumentException.class, () -> PackDefinitions.load(manager));
+            assertTrue(error.getMessage().contains("pack 'bad' / tooltipstudio:styles/monumenta/forest.extra.json"));
+        }
+    }
+
     @Test void disabledPacksLeaveNoDefinitions() throws Exception {
         write("base", "styles/forest.json", style(125));
         try (var enabled = manager("base"); var disabled = manager()) {
@@ -135,7 +161,7 @@ class PackDefinitionsTest {
         try (var manager = new LifecycledResourceManagerImpl(ResourceType.CLIENT_RESOURCES,
                 List.of(new DirectoryResourcePack("example", example, false)))) {
             var pack = PackDefinitions.load(manager);
-            assertEquals(Set.of("pack_forest", "pack_wood"), pack.styles().keySet());
+            assertEquals(Set.of("pack_forest", "pack_wood", "monumenta/forest"), pack.styles().keySet());
             assertEquals(3, pack.mergeRules(LOCAL, pack.styles().keySet()).size());
             for (var style : pack.styles().values()) {
                 try (var stream = manager.getResource(new net.minecraft.util.Identifier(style.texture())).orElseThrow().getInputStream()) {

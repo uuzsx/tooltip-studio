@@ -87,19 +87,7 @@ public final class ConfigManager {
         try {
             Settings settings = read(directory.resolve("config.json"), Settings.class);
             PackDefinitions packs = PackDefinitions.load(resources);
-            Map<String, Style> definitions = new LinkedHashMap<>();
-            try (var files = Files.list(directory.resolve("styles"))) {
-                for (Path file : files.filter(p -> p.getFileName().toString().endsWith(".json")).sorted().toList()) {
-                    String name = file.getFileName().toString().replaceFirst("\\.json$", "");
-                    Style.require(name.matches("[a-z0-9_-]+"), "invalid style filename: " + name);
-                    // Pack definitions also override first-install sample JSON, so replacing rare works immediately.
-                    if (packs.styles().containsKey(name)) continue;
-                    Style definition = read(file, Style.class);
-                    try { definition.validate(); }
-                    catch (RuntimeException e) { throw new IllegalArgumentException(file.getFileName() + ": " + e.getMessage(), e); }
-                    definitions.put(name, definition);
-                }
-            }
+            Map<String, Style> definitions = StyleFiles.loadLocal(directory.resolve("styles"), packs.styles().keySet());
             definitions.putAll(packs.styles());
             settings.validate(definitions.keySet());
             List<CompiledRule> rules = packs.mergeRules(settings, definitions.keySet()).stream()

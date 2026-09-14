@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "rules": [
     {
-      "style": "pack_forest",
+      "style": "monumenta/forest",
       "priority": 300,
       "nbt": { "Monumenta.Location": "forest" }
     },

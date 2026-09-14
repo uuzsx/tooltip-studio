@@ -46,6 +46,7 @@ public final class SmokeClient implements ClientModInitializer {
                     sword.getOrCreateNbt().putString("TooltipStyle", "cat_bell");
                     check(TooltipStudioClient.CONFIG.select(sword).style().texture().contains("cat_bell"), "NBT override");
                     testReload(client);
+                    testNestedStyles(client);
                     client.options.getGuiScale().setValue(2);
                     client.onResolutionChanged();
                     client.reloadResources().thenRun(() -> {
@@ -94,6 +95,49 @@ public final class SmokeClient implements ClientModInitializer {
             check(TooltipStudioClient.CONFIG.select(item).style().texture().equals("local:custom.png"), "custom style selected");
         } finally { Files.deleteIfExists(custom); }
         check(TooltipStudioClient.CONFIG.reload(client.getResourceManager()), "sample configuration restored");
+    }
+
+    private void testNestedStyles(MinecraftClient client) throws Exception {
+        Path config = client.runDirectory.toPath().resolve("config/tooltipstudio");
+        Path settings = config.resolve("config.json");
+        byte[] original = Files.readAllBytes(settings);
+        Path first = config.resolve("styles/smoke_groups/a/forest.json");
+        Path second = config.resolve("styles/smoke_groups/b/deep/forest.json");
+        try {
+            Files.createDirectories(first.getParent());
+            Files.createDirectories(second.getParent());
+            var style = JsonParser.parseString(Files.readString(config.resolve("styles/rare.json"))).getAsJsonObject();
+            style.addProperty("texture", "local:custom.png");
+            style.addProperty("minWidth", 131);
+            Files.writeString(first, style.toString());
+            style.addProperty("minWidth", 141);
+            Files.writeString(second, style.toString());
+            var json = JsonParser.parseString(Files.readString(settings)).getAsJsonObject();
+            json.addProperty("defaultStyle", "smoke_groups/b/deep/forest");
+            json.getAsJsonArray("rules").add(JsonParser.parseString("""
+                    {"style":"smoke_groups/a/forest","priority":500,"items":["minecraft:stick"]}
+                    """));
+            Files.writeString(settings, json.toString());
+            check(TooltipStudioClient.CONFIG.reload(client.getResourceManager()), "nested local style reload");
+            check(TooltipStudioClient.CONFIG.count() == 11, "same basename in different local folders is distinct");
+            check(TooltipStudioClient.CONFIG.select(new ItemStack(Items.STICK)).style().minWidth() == 131,
+                    "local rule selects full style path");
+            check(TooltipStudioClient.CONFIG.select(new ItemStack(Items.DIAMOND)).style().minWidth() == 141,
+                    "defaultStyle selects a multi-level local path");
+            var item = new ItemStack(Items.DIAMOND);
+            item.getOrCreateNbt().putString("TooltipStyle", "smoke_groups/a/forest");
+            check(TooltipStudioClient.CONFIG.select(item).style().minWidth() == 131, "NBT override selects local path");
+            Files.delete(first);
+            check(!TooltipStudioClient.CONFIG.reload(client.getResourceManager())
+                    && TooltipStudioClient.CONFIG.select(item).style().minWidth() == 131,
+                    "missing nested style reference retains previous snapshot");
+        } finally {
+            Files.write(settings, original);
+            Files.deleteIfExists(first);
+            Files.deleteIfExists(second);
+        }
+        check(TooltipStudioClient.CONFIG.reload(client.getResourceManager()) && TooltipStudioClient.CONFIG.count() == 9,
+                "nested local styles are removed after restoring files and references");
     }
 
     private static ItemStack sample(String style, String title, String... lore) {
