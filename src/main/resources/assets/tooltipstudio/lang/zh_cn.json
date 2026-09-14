@@ -1,0 +1,4 @@
+{
+  "tooltipstudio.reload.success": "Tooltip Studio：已重新加载 %s 套样式。",
+  "tooltipstudio.reload.error": "Tooltip Studio：重载失败，保留上次有效配置。原因：%s"
+}

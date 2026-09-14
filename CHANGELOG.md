@@ -1,0 +1,24 @@
+# 1.0
+
+- 作者设为幼幼紫、千村，补充中文功能简介。
+- 模组显示版本设为 1.0；发布文件名保留 +1.20.4，标明适用的 Minecraft 版本。
+- 保留 0.1.2 的全部功能与配置格式。
+
+# 0.1.2+1.20.4
+
+- 新增规则 `nbt` 对象：按物品 NBT 路径和值选择样式，例如 `Monumenta.Location = "forest"`、`plain.display.Name = "Double Down"`。
+- 支持多个字段同时满足、一个字段多个候选值，以及 NBT 条件与 ID、物品 tag、稀有度组合。
+- 支持精确字符串、数值和布尔值；路径使用原版解析器，仅在配置重载时编译，悬停匹配不修改物品 NBT。
+- 保留原有规则优先级、有效 `TooltipStyle` 覆盖和默认样式；旧配置无需迁移，内置默认规则保持不变。
+- 非法 NBT 条件拒绝重载并保留上次配置，缺失字段正常跳过；保留 0.1.1 的潜影盒预览兼容修复。
+- 附带 Monumenta 来源规则、材质规则对应写法、测试命令与实际客户端截图。只适用于 Minecraft 1.20.4。
+
+# 0.1.1+1.20.4
+
+- 修复与 Shulker Box Tooltip 4.1.0 的 `HandledScreenMixin` Redirect 冲突造成的启动崩溃。
+- 用可串联的 WrapMethod 保留背包原方法和其他模组的预览/锁定逻辑，在最终绘制入口应用样式。
+- 正确绘制 Shulker Box Tooltip 的框内、框外预览，并在锁定时根据被锁定的物品选择样式。
+- 使用 finally 恢复嵌套 tooltip 的物品上下文，渲染异常和提前取消也不会留下状态。
+- 内嵌 MixinExtras 0.4.1；原有 JSON 与 PNG 配置无需修改。
+
+实现参考：[MixinExtras WrapMethod](https://github.com/LlamaLad7/MixinExtras/wiki/WrapMethod)、[Shulker Box Tooltip 4.1.0 源码](https://github.com/MisterPeModder/ShulkerBoxTooltip/tree/v4.1.0%2B1.20.4)。

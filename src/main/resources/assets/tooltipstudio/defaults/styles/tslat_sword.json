@@ -1,0 +1,107 @@
+{
+  "texture": "tooltipstudio:textures/styles/tslat_sword.png",
+  "textureWidth": 128,
+  "textureHeight": 128,
+  "background": {
+    "u": 24,
+    "v": 0,
+    "width": 1,
+    "height": 1
+  },
+  "frame": {
+    "region": {
+      "u": 0,
+      "v": 0,
+      "width": 10,
+      "height": 10
+    },
+    "left": 2,
+    "top": 2,
+    "right": 2,
+    "bottom": 2
+  },
+  "separator": {
+    "enabled": true,
+    "region": {
+      "u": 0,
+      "v": 0,
+      "width": 10,
+      "height": 2
+    },
+    "leftCap": 2,
+    "rightCap": 2,
+    "inset": 0,
+    "marginTop": 3,
+    "marginBottom": 4
+  },
+  "padding": {
+    "left": 9,
+    "top": 9,
+    "right": 9,
+    "bottom": 9
+  },
+  "minWidth": 100,
+  "maxWidth": 320,
+  "decorations": [
+    {
+      "region": {
+        "u": 0,
+        "v": 40,
+        "width": 5,
+        "height": 5
+      },
+      "anchor": "TOP_LEFT",
+      "x": -3,
+      "y": -4,
+      "foreground": true
+    },
+    {
+      "region": {
+        "u": 28,
+        "v": 40,
+        "width": 5,
+        "height": 5
+      },
+      "anchor": "TOP_RIGHT",
+      "x": 3,
+      "y": -4,
+      "foreground": true
+    },
+    {
+      "region": {
+        "u": 56,
+        "v": 40,
+        "width": 5,
+        "height": 5
+      },
+      "anchor": "BOTTOM_LEFT",
+      "x": -3,
+      "y": 3,
+      "foreground": true
+    },
+    {
+      "region": {
+        "u": 84,
+        "v": 40,
+        "width": 5,
+        "height": 5
+      },
+      "anchor": "BOTTOM_RIGHT",
+      "x": 3,
+      "y": 3,
+      "foreground": true
+    },
+    {
+      "region": {
+        "u": 0,
+        "v": 68,
+        "width": 22,
+        "height": 7
+      },
+      "anchor": "TOP",
+      "x": 0,
+      "y": -5,
+      "foreground": true
+    }
+  ]
+}

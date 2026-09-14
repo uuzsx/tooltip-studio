@@ -1,0 +1,4 @@
+{
+  "tooltipstudio.reload.success": "Tooltip Studio: reloaded %s styles.",
+  "tooltipstudio.reload.error": "Tooltip Studio: reload failed; keeping the previous configuration. Reason: %s"
+}

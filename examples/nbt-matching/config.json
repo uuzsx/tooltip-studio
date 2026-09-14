@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "enabled": true,
+  "defaultStyle": "rare",
+  "nbtStyleKey": "TooltipStyle",
+  "rules": [
+    {
+      "style": "mythical",
+      "priority": 200,
+      "nbt": { "Monumenta.Location": "forest" }
+    },
+    {
+      "style": "legendary",
+      "priority": 100,
+      "items": ["minecraft:netherite_*"]
+    },
+    { "style": "epic", "priority": 50, "rarities": ["epic"] },
+    { "style": "rare", "priority": 40, "rarities": ["rare"] },
+    { "style": "uncommon", "priority": 30, "rarities": ["uncommon"] }
+  ]
+}

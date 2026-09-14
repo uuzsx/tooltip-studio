@@ -1,0 +1,16 @@
+.gradle/
+build/
+run/
+run-smoke/
+.idea/
+*.iml
+logs/
+*.log
+crash-reports/
+hs_err_pid*
+*.hprof
+.vscode/
+__pycache__/
+*.py[cod]
+.DS_Store
+Thumbs.db

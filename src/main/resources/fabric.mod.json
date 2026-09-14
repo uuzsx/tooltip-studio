@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "tooltipstudio",
+  "version": "${version}",
+  "name": "Tooltip Studio",
+  "description": "通过 JSON 和单张贴图自定义物品提示框，支持名称居中、装饰分割线及物品与 NBT 匹配。",
+  "authors": ["幼幼紫", "千村"],
+  "environment": "client",
+  "entrypoints": { "client": ["dev.tooltipstudio.TooltipStudioClient"] },
+  "mixins": ["tooltipstudio.mixins.json"],
+  "license": "All-Rights-Reserved",
+  "depends": {
+    "fabricloader": ">=0.15.11",
+    "minecraft": "1.20.4",
+    "java": ">=17",
+    "fabric-api": "*",
+    "mixinextras": ">=0.4.1"
+  }
+}

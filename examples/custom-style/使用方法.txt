@@ -1,0 +1,3 @@
+把 styles 和 textures 文件夹合并复制到游戏实例的 config/tooltipstudio/ 中。
+然后把 config.json 的 defaultStyle 改为 my_style，或使用 TooltipStyle:"my_style" 的物品 NBT。
+进游戏执行 /tooltipstudio reload。
