@@ -54,7 +54,12 @@ tasks.register('exampleResourcePack', Zip) {
     archiveFileName = "tooltip-studio-example-pack-${project.mod_version}+${project.minecraft_version}.zip"
     destinationDirectory = layout.buildDirectory.dir('resourcepacks')
 }
-tasks.named('assemble') { dependsOn tasks.named('exampleResourcePack') }
+tasks.register('decorationResourcePack', Zip) {
+    from('examples/decoration-pack')
+    archiveFileName = "tooltip-studio-decoration-pack-${project.mod_version}+${project.minecraft_version}.zip"
+    destinationDirectory = layout.buildDirectory.dir('resourcepacks')
+}
+tasks.named('assemble') { dependsOn tasks.named('exampleResourcePack'), tasks.named('decorationResourcePack') }
 
 // Developer-only rendering smoke test; excluded from the distributable jar.
 sourceSets {

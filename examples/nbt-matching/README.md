@@ -1,4 +1,4 @@
-# Monumenta NBT 匹配示例 — Tooltip Studio 1.4 / Fabric 1.20.4
+# Monumenta NBT 匹配示例 — Tooltip Studio 1.5 / Fabric 1.20.4
 
 先启用随本版附带的示例资源包，或自行创建 monumenta/forest 样式。示例包只使用默认 PNG，匹配时将基础款向上偏移 12 个 GUI 像素。
 forest-rule.json 是可添加到现有 config.json 的 rules 数组中的单条规则；示例资源包已经携带这条规则，无需重复添加。完整 config.json 用于独立演示，替换前备份自己的配置。

@@ -1,6 +1,6 @@
-# Tooltip Studio 1.4：整个 tooltip 的 XY 偏移
+# Tooltip Studio 1.5：整个 tooltip 的 XY 偏移
 
-适用于 Fabric / Minecraft 1.20.4。先移除旧版 JAR，安装 `tooltip-studio-1.4+1.20.4.jar`，同一时间只保留一个版本。自定义样式、分类目录与 NBT 规则仍受支持；本版已移除旧极光预设和 PNG，升级处理见 [基础款说明](../base-style/README.md)。
+适用于 Fabric / Minecraft 1.20.4。先移除旧版 JAR，安装 `tooltip-studio-1.5+1.20.4.jar`，同一时间只保留一个版本。自定义样式、分类目录与 NBT 规则仍受支持；本版已移除旧极光预设和 PNG，升级处理见 [基础款说明](../base-style/README.md)。
 
 ## 往上移动一点
 
@@ -43,7 +43,7 @@
 
 ## 现成的资源包示例
 
-本版 `tooltip-studio-example-pack-1.4+1.20.4.zip` 中的 `monumenta/forest` 已设置 `offsetX: 0`、`offsetY: -12`，匹配客户端物品 NBT 的 `Monumenta.Location = forest`。
+本版 `tooltip-studio-example-pack-1.5+1.20.4.zip` 中的 `monumenta/forest` 已设置 `offsetX: 0`、`offsetY: -12`，匹配客户端物品 NBT 的 `Monumenta.Location = forest`。
 内置 `default` 不设置偏移，使用同一张 PNG。可在有权限的 1.20.4 单人测试世界获取两个仅覆盖样式 ID 不同的物品进行比较：
 
 ```mcfunction

@@ -1,4 +1,4 @@
-# Tooltip Studio 1.4 资源包示例
+# Tooltip Studio 1.5 资源包示例
 
 适用于 Fabric / Minecraft 1.20.4。把 ZIP 放入 resourcepacks 并在游戏中启用，ZIP 根目录直接包含 pack.mcmeta（pack_format=22）。
 本包只使用与模组相同的默认 PNG，没有极光素材。示例样式 monumenta/forest 保留基础款外观，设置 offsetY=-12，用位置变化演示规则匹配。

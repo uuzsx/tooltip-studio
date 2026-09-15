@@ -28,6 +28,8 @@ final class ShulkerSmoke {
     private final ItemStack other = new ItemStack(Items.DIAMOND);
     private final Field lockKey;
     private final Path offsetStyle;
+    private final Path config, decoration, decorationPng;
+    private final byte[] originalConfig;
 
     ShulkerSmoke(MinecraftClient client, int width, int height) {
         // SBT normally registers providers on world join; this screen test creates no world.
@@ -36,12 +38,29 @@ final class ShulkerSmoke {
         box.setCustomName(Text.literal("Shulker preview / offset (+16, -12)"));
         box.getOrCreateNbt().putString("TooltipStyle", "smoke_shulker_offset");
         offsetStyle = client.runDirectory.toPath().resolve("config/tooltipstudio/styles/smoke_shulker_offset.json");
+        config = offsetStyle.getParent().getParent().resolve("config.json");
+        decoration = config.getParent().resolve("decorations/smoke_shulker/sword.json");
+        decorationPng = config.getParent().resolve("textures/smoke_shulker/sword.png");
         try {
+            originalConfig = Files.readAllBytes(config);
             var json = SmokeClient.baseDefinition();
             json.addProperty("offsetX", 16);
             json.addProperty("offsetY", -12);
             Files.writeString(offsetStyle, json.toString());
+            Path example = client.runDirectory.toPath().toAbsolutePath().getParent().resolve("examples/decoration-pack/assets/tooltipstudio");
+            var overlay = JsonParser.parseString(Files.readString(example.resolve("decorations/sword/top_left.json"))).getAsJsonObject();
+            overlay.addProperty("texture", "local:smoke_shulker/sword.png");
+            Files.createDirectories(decoration.getParent()); Files.createDirectories(decorationPng.getParent());
+            Files.writeString(decoration, overlay.toString());
+            Files.copy(example.resolve("textures/decorations/sword.png"), decorationPng, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            var settings = JsonParser.parseString(Files.readString(config)).getAsJsonObject();
+            if (!settings.has("decorationRules")) settings.add("decorationRules", new com.google.gson.JsonArray());
+            settings.getAsJsonArray("decorationRules").add(JsonParser.parseString("""
+                    {"decorations":["smoke_shulker/sword"],"items":["minecraft:purple_shulker_box"]}
+                    """));
+            Files.writeString(config, settings.toString());
             if (!TooltipStudioClient.CONFIG.reload(client.getResourceManager())) throw new IllegalStateException("Shulker offset style did not load");
+            if (TooltipStudioClient.CONFIG.select(box).decorations().size() != 1) throw new AssertionError("Shulker independent overlay missing");
         } catch (Exception e) { throw new IllegalStateException(e); }
         NbtList contents = new NbtList();
         NbtCompound diamond = new ItemStack(Items.DIAMOND, 32).writeNbt(new NbtCompound());
@@ -62,6 +81,7 @@ final class ShulkerSmoke {
     void close(MinecraftClient client) {
         try {
             Files.deleteIfExists(offsetStyle);
+            Files.deleteIfExists(decoration); Files.deleteIfExists(decorationPng); Files.write(config, originalConfig);
             if (!TooltipStudioClient.CONFIG.reload(client.getResourceManager())) throw new IllegalStateException("Shulker styles did not restore");
         } catch (Exception e) { throw new IllegalStateException(e); }
     }
@@ -84,6 +104,8 @@ final class ShulkerSmoke {
             var parent = TooltipRenderScope.enter(other, lock);
             try {
                 if (TooltipRenderScope.item() != box) throw new AssertionError("Locked stack lost");
+                if (TooltipStudioClient.CONFIG.select(TooltipRenderScope.item()).decorations().size() != 1)
+                    throw new AssertionError("Locked shulker decoration lost");
                 var nested = TooltipRenderScope.enter(other, null);
                 try {
                     if (TooltipRenderScope.item() != other) throw new AssertionError("Nested stack lost");
@@ -97,6 +119,8 @@ final class ShulkerSmoke {
             var released = TooltipRenderScope.enter(other, lock);
             try {
                 if (TooltipRenderScope.item() != other) throw new AssertionError("Lock did not release");
+                if (!TooltipStudioClient.CONFIG.select(TooltipRenderScope.item()).decorations().isEmpty())
+                    throw new AssertionError("Shulker decoration leaked to another item after release");
             } finally { TooltipRenderScope.restore(released); }
             context.drawTooltip(font, java.util.List.of(Text.literal("Generic tooltip stays vanilla")),
                     java.util.Optional.empty(), 330, 380);

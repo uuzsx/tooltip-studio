@@ -187,7 +187,7 @@ final class NbtSmoke extends Screen {
 
     @Override public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         context.fill(0, 0, width, height, 0xff17202e);
-        context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.4 / NBT 匹配实测", width / 2, 14, 0xffffff);
+        context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.5 / NBT 匹配实测", width / 2, 14, 0xffffff);
         context.drawCenteredTextWithShadow(textRenderer, "全部为 minecraft:stick，未设置 TooltipStyle", width / 2, 31, 0x9ec5df);
         for (int i = 0; i < samples.length; i++) {
             int x = 18 + (i % 2) * (width / 2);

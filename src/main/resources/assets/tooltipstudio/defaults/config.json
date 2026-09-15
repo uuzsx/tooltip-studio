@@ -3,5 +3,6 @@
   "enabled": true,
   "defaultStyle": "default",
   "nbtStyleKey": "TooltipStyle",
-  "rules": []
+  "rules": [],
+  "decorationRules": []
 }

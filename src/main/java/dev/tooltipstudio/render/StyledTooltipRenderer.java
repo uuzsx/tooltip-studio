@@ -65,7 +65,9 @@ public final class StyledTooltipRenderer {
         int width = contentWidth + padding.left() + padding.right();
         int height = y + padding.bottom();
         int left = 0, top = 0, right = width, bottom = height;
-        for (Style.Decoration d : style.decorations()) {
+        List<Style.Decoration> placements = new ArrayList<>(style.decorations());
+        for (var decoration : loaded.decorations()) placements.add(decoration.definition().placement());
+        for (Style.Decoration d : placements) {
             int dx = Slices.anchorX(d.anchor(), width, d.region().width()) + d.x();
             int dy = Slices.anchorY(d.anchor(), height, d.region().height()) + d.y();
             left = Math.min(left, dx); top = Math.min(top, dy);
@@ -143,6 +145,14 @@ public final class StyledTooltipRenderer {
         for (Style.Decoration d : loaded.style().decorations()) if (d.foreground() == foreground)
             sprite(context, loaded, d.region(), Slices.anchorX(d.anchor(), width, d.region().width()) + d.x(),
                     Slices.anchorY(d.anchor(), height, d.region().height()) + d.y(), d.region().width(), d.region().height());
+        for (var overlay : loaded.decorations()) {
+            var d = overlay.definition();
+            if (d.foreground() == foreground)
+                context.drawTexture(overlay.texture(), Slices.anchorX(d.anchor(), width, d.region().width()) + d.x(),
+                        Slices.anchorY(d.anchor(), height, d.region().height()) + d.y(), d.region().width(), d.region().height(),
+                        (float) d.region().u(), (float) d.region().v(), d.region().width(), d.region().height(),
+                        d.textureWidth(), d.textureHeight());
+        }
     }
 
     private static void sprite(DrawContext context, LoadedStyle loaded, Style.Region region, int x, int y, int width, int height) {

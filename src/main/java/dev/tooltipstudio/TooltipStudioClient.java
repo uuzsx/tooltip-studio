@@ -27,7 +27,7 @@ public final class TooltipStudioClient implements ClientModInitializer {
                 literal("tooltipstudio")
                         .then(literal("reload").executes(context -> {
                             if (CONFIG.reload(MinecraftClient.getInstance().getResourceManager())) {
-                                context.getSource().sendFeedback(Text.translatable("tooltipstudio.reload.success", CONFIG.count()));
+                                context.getSource().sendFeedback(Text.translatable("tooltipstudio.reload.success", CONFIG.count(), CONFIG.decorationCount()));
                                 return 1;
                             }
                             context.getSource().sendError(Text.translatable("tooltipstudio.reload.error", CONFIG.lastError()));
@@ -35,6 +35,10 @@ public final class TooltipStudioClient implements ClientModInitializer {
                         }))
                         .then(literal("list").executes(context -> {
                             context.getSource().sendFeedback(Text.literal(CONFIG.styleNames()));
+                            return 1;
+                        }))
+                        .then(literal("decorations").executes(context -> {
+                            context.getSource().sendFeedback(Text.literal(CONFIG.decorationNames()));
                             return 1;
                         }))));
     }

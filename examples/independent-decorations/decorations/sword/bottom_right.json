@@ -1,0 +1,15 @@
+{
+  "texture": "local:decorations/sword.png",
+  "textureWidth": 128,
+  "textureHeight": 128,
+  "region": {
+    "u": 0,
+    "v": 0,
+    "width": 16,
+    "height": 16
+  },
+  "anchor": "BOTTOM_RIGHT",
+  "x": 6,
+  "y": 6,
+  "foreground": true
+}

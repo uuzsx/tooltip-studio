@@ -8,9 +8,16 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 public record Settings(int schemaVersion, boolean enabled, String defaultStyle,
-                       String nbtStyleKey, List<Rule> rules) {
+                       String nbtStyleKey, List<Rule> rules, List<DecorationRule> decorationRules) {
+    public Settings(int schemaVersion, boolean enabled, String defaultStyle, String nbtStyleKey, List<Rule> rules) {
+        this(schemaVersion, enabled, defaultStyle, nbtStyleKey, rules, List.of());
+    }
     public record Rule(String style, int priority, List<String> items, List<String> tags,
                        List<String> rarities, Map<String, JsonElement> nbt) {}
+    public record DecorationRule(List<String> decorations, int priority, List<String> items, List<String> tags,
+                                 List<String> rarities, Map<String, JsonElement> nbt) {
+        public Rule condition() { return new Rule(null, priority, items, tags, rarities, nbt); }
+    }
 
     public void validate(Set<String> styles) {
         Style.require(schemaVersion == 1, "schemaVersion must be 1");
@@ -23,17 +30,33 @@ public record Settings(int schemaVersion, boolean enabled, String defaultStyle,
         Style.require(rules != null && rules.size() <= 4096, "rules must be an array (at most 4096)");
         for (Rule rule : rules) {
             Style.require(rule != null && styles.contains(rule.style), "rule references an unknown style: " + (rule == null ? "null" : rule.style));
-            Style.require(hasValues(rule.items) || hasValues(rule.tags) || hasValues(rule.rarities)
-                            || (rule.nbt != null && !rule.nbt.isEmpty()),
-                    "rule requires items, tags, rarities, or nbt");
-            validateNbt(rule.nbt);
-            if (rule.items != null) for (String item : rule.items)
-                Style.require(item != null && item.matches("[a-z0-9_.*-]+:[a-z0-9_./*-]+"), "invalid item pattern: " + item);
-            if (rule.tags != null) for (String tag : rule.tags)
-                Style.require(tag != null && tag.matches("[a-z0-9_.-]+:[a-z0-9_./-]+"), "invalid tag: " + tag);
-            if (rule.rarities != null) for (String rarity : rule.rarities)
-                Style.require(Set.of("common", "uncommon", "rare", "epic").contains(rarity), "invalid rarity: " + rarity);
+            validateCondition(rule);
         }
+    }
+
+    public static void validateDecorationRules(List<DecorationRule> rules, Set<String> decorations) {
+        if (rules == null) return; // Optional in configurations written by previous versions.
+        Style.require(rules.size() <= 4096, "decorationRules supports at most 4096 rules");
+        for (DecorationRule rule : rules) {
+            Style.require(rule != null && hasValues(rule.decorations) && rule.decorations.size() <= 64,
+                    "decoration rule requires 1..64 decoration IDs");
+            for (String id : rule.decorations)
+                Style.require(id != null && decorations.contains(id), "rule references an unknown decoration: " + id);
+            validateCondition(rule.condition());
+        }
+    }
+
+    private static void validateCondition(Rule rule) {
+        Style.require(hasValues(rule.items) || hasValues(rule.tags) || hasValues(rule.rarities)
+                        || (rule.nbt != null && !rule.nbt.isEmpty()),
+                "rule requires items, tags, rarities, or nbt");
+        validateNbt(rule.nbt);
+        if (rule.items != null) for (String item : rule.items)
+            Style.require(item != null && item.matches("[a-z0-9_.*-]+:[a-z0-9_./*-]+"), "invalid item pattern: " + item);
+        if (rule.tags != null) for (String tag : rule.tags)
+            Style.require(tag != null && tag.matches("[a-z0-9_.-]+:[a-z0-9_./-]+"), "invalid tag: " + tag);
+        if (rule.rarities != null) for (String rarity : rule.rarities)
+            Style.require(Set.of("common", "uncommon", "rare", "epic").contains(rarity), "invalid rarity: " + rarity);
     }
 
     public static boolean hasValues(List<?> list) { return list != null && !list.isEmpty(); }

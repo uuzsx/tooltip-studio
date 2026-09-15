@@ -1,0 +1,34 @@
+{
+  "decorationRules": [
+    {
+      "decorations": [
+        "sword/top_left"
+      ],
+      "priority": 100,
+      "items": [
+        "minecraft:spruce_door"
+      ]
+    },
+    {
+      "decorations": [
+        "sword/top_left"
+      ],
+      "priority": 200,
+      "nbt": {
+        "Monumenta.Location": "forest"
+      }
+    },
+    {
+      "decorations": [
+        "sword/top_left",
+        "sword/top_right",
+        "sword/bottom_left",
+        "sword/bottom_right"
+      ],
+      "priority": 300,
+      "nbt": {
+        "TooltipDecorations": "all_corners"
+      }
+    }
+  ]
+}

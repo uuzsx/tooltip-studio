@@ -4,12 +4,12 @@
 
 通过配置或资源包中的 JSON 和单张贴图自定义物品提示框，支持名称居中、装饰分割线及物品与 NBT 匹配。
 
-作者：**幼幼紫、千村**。版本 **1.4**，纯客户端，仅支持 **Minecraft 1.20.4**。
+作者：**幼幼紫、千村**。版本 **1.5**，纯客户端，仅支持 **Minecraft 1.20.4**。
 项目采用 [MIT 协议](LICENSE)，仓库：[uuzsx/tooltip-studio](https://github.com/uuzsx/tooltip-studio)。
 
 ## 安装与默认外观
 
-使用 Minecraft 1.20.4、Fabric Loader 0.15.11 或更新版，以及适用于 1.20.4 的 Fabric API。移除旧版 Tooltip Studio JAR，放入 `tooltip-studio-1.4+1.20.4.jar`；服务端无需安装。
+使用 Minecraft 1.20.4、Fabric Loader 0.15.11 或更新版，以及适用于 1.20.4 的 Fabric API。移除旧版 Tooltip Studio JAR，放入 `tooltip-studio-1.5+1.20.4.jar`；服务端无需安装。
 
 **本版只内置 default 一套基础样式。** 原样使用用户朋友提供的 Default.png 和 defalut.json，JSON 仅将 texture 改为 `tooltipstudio:textures/styles/default.png`。原极光的 9 套样式、贴图及图集生成脚本已移除，示例包也不包含旧素材。
 
@@ -19,10 +19,11 @@
 config/tooltipstudio/
 ├─ config.json
 ├─ styles/default.json
+├─ decorations/
 └─ textures/
 ```
 
-新配置的 defaultStyle 为 default，rules 为空；所有普通物品默认使用基础款。仍可自行添加样式、物品匹配、NBT 匹配与资源包，不限制扩展能力。
+新配置的 defaultStyle 为 default，rules 与 decorationRules 为空；所有普通物品默认使用基础款。仍可自行添加样式、物品匹配、NBT 匹配与资源包，不限制扩展能力。
 
 ## 从旧版升级
 
@@ -39,7 +40,8 @@ config/tooltipstudio/
 
 - 物品名称居中，名称换行后每行仍居中，正文左对齐；保留原有文字颜色、附魔与 lore。
 - 标题与正文间显示分割线，只有标题时不显示。分割线左右两端固定，仅中段拉伸。
-- 背景、九宫格边框、分割线和装饰来自同一张 PNG；装饰支持九个锚点及绘制前后层。
+- 基础样式的背景、九宫格边框、分割线和自带装饰来自同一张 PNG；装饰支持九个锚点及绘制前后层。
+- 独立装饰可用自己的 PNG 和匹配规则，叠加到任意已选样式上；支持多项同时命中、四角定位，不替换基础款外观。
 - 支持物品 ID/通配符、物品 tag、稀有度、NBT 路径和值，以及单件物品 TooltipStyle 覆盖。
 - 本地与资源包均可提供样式 JSON，支持多层分类目录、优先级覆盖及热重载。
 - offsetX / offsetY 控制整框偏移。长文字自动换行，超大提示框整体缩小；屏幕边缘限制包含外部装饰。
@@ -55,7 +57,8 @@ config/tooltipstudio/
   "enabled": true,
   "defaultStyle": "default",
   "nbtStyleKey": "TooltipStyle",
-  "rules": []
+  "rules": [],
+  "decorationRules": []
 }
 ```
 
@@ -100,7 +103,7 @@ NBT 路径从物品 tag 内部开始，不加 SelectedItem.tag.、tag.、nbt. �
 ```
 
 Minecraft 1.20.4 的 pack.mcmeta 使用 pack_format=22。样式 JSON 与本地格式相同，PNG 资源 ID 如 `tooltipstudio:textures/styles/default.png`；也可用其他合法命名空间。资源包样式不能用 local:。
-规则文件格式为 `{"schemaVersion":1,"rules":[...]}`。全局开关、默认样式和覆盖键仍由本地 config.json 控制。
+规则文件格式为 `{"schemaVersion":1,"rules":[...]}`，也可包含 decorationRules，或只提供 decorationRules。全局开关、默认样式和覆盖键仍由本地 config.json 控制。
 多个资源包同路径 JSON 由高优先级包整份覆盖；不同路径的规则文件合并。用空 rules 数组可屏蔽低优先级包同路径的规则文件。
 停用资源包会移除其独有定义与自带规则；若本地手工引用了随包移除的样式，需要同步改掉引用。
 
@@ -117,6 +120,27 @@ style、defaultStyle 和 TooltipStyle 填相对于 styles/ 的路径，去掉 .j
 | styles/monumenta/ring3/forest.json | monumenta/ring3/forest |
 
 每层名字用小写英文字母、数字、下划线或连字符。引用使用正斜杠，不加 styles/、.json、命名空间、磁盘路径、`.` 或 `..`。路径不相对于规则文件所在目录。同名文件放在不同目录时互不覆盖。
+
+## 按条件叠加独立装饰
+
+新增的 decorationRules 与原有 rules 平级。rules 选择基础样式，所有命中的 decorationRules 额外叠加装饰，背景、边框、分割线和文字布局仍由原样式决定。
+支持 ID、tag、稀有度、NBT 条件；有效 TooltipStyle 只决定基础样式，不会屏蔽独立装饰。默认款、本地自定义和资源包样式全部支持。
+
+```json
+"decorationRules": [
+  {"decorations":["sword/top_left"],"priority":200,"nbt":{"Monumenta.Location":"forest"}}
+]
+```
+
+这是已有 config.json 的字段片段。对应装饰放在 `config/tooltipstudio/decorations/sword/top_left.json`，或资源包的 `assets/tooltipstudio/decorations/sword/top_left.json`。
+每份装饰 JSON 指定自己的 texture、textureWidth、textureHeight、region、anchor、x、y、foreground，不需要复制基础样式。装饰 ID 使用相对于 decorations/ 的分类路径，与 styles/ 中的同名 ID 独立。
+本地 PNG 放入 config/tooltipstudio/textures/ 并使用 local: 引用；资源包使用资源 ID。原样式内的 decorations 继续使用原图集并正常绘制。
+
+多条命中可叠加，同一个装饰 ID 只画一次；同一绘制层内，高 priority 在上方，同 priority 本地规则优先。最多同时叠加 64 个不同装饰，超过时按优先级取前 64 个。
+TOP_LEFT、TOP_RIGHT、BOTTOM_LEFT、BOTTOM_RIGHT 支持四角，也支持边中点和中心；x/y 调整装饰相对位置。整框移动、缩放和屏幕边缘限制均包含独立装饰。
+
+可直接启用 `tooltip-studio-decoration-pack-1.5+1.20.4.zip`：云杉木门左上角出现小剑，NBT `Monumenta.Location=forest` 同样匹配，`TooltipDecorations=all_corners` 演示四角。该包不包含基础样式 JSON，也不会修改本地设置。
+完整参数、四角表格、本地安装与测试命令见 [独立装饰说明](examples/independent-decorations/README.md)。剑贴图原样来自用户提供的 test.png，仅在可选示例中分发，默认 JAR 不会自动添加装饰。
 
 ## 自定义一套样式
 
@@ -149,14 +173,16 @@ style、defaultStyle 和 TooltipStyle 填相对于 styles/ 的路径，去掉 .j
 ```text
 /tooltipstudio reload
 /tooltipstudio list
+/tooltipstudio decorations
 ```
 
-本地 JSON/PNG 改动后使用 reload；资源包改动后按 F3+T。启用、停用、排序资源包也会触发重载。list 显示完整样式 ID。
+本地 JSON/PNG 改动后使用 reload；资源包改动后按 F3+T。启用、停用、排序资源包也会触发重载。list 显示完整样式 ID，decorations 显示独立装饰 ID。
 非法 JSON、无效区域、未知样式或缺失贴图会拒绝本次重载并保留上次成功状态，首次加载失败使用原版 tooltip。
 
 ## 构建与验证
 
-使用 JDK 17 与 Gradle Wrapper：`./gradlew build`（Windows 使用 gradlew.bat）。产物为 build/libs/tooltip-studio-1.4+1.20.4.jar 和 build/resourcepacks/tooltip-studio-example-pack-1.4+1.20.4.zip。
+使用 JDK 17 与 Gradle Wrapper：`./gradlew build`（Windows 使用 gradlew.bat）。产物为 build/libs/tooltip-studio-1.5+1.20.4.jar 和 build/resourcepacks/tooltip-studio-example-pack-1.5+1.20.4.zip。
+独立装饰示例为 build/resourcepacks/tooltip-studio-decoration-pack-1.5+1.20.4.zip。
 `runSmoke` 启动开发测试客户端；`-PsmokeRunDir=run-smoke-base-only` 可使用独立测试目录，`-PcompatShulker` 启用潜影盒兼容测试。
 GitHub Actions 自动运行构建与测试，构建产物保存 14 天。详情见 [验证记录](VERIFICATION.md) 与 [素材说明](THIRD_PARTY_ASSETS.md)。
 

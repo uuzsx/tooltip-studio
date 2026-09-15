@@ -47,6 +47,6 @@ public final class LegacyPresets {
 
     public static Settings settings(Settings source, Set<String> available) {
         return new Settings(source.schemaVersion(), source.enabled(), resolve(source.defaultStyle(), available),
-                source.nbtStyleKey(), rules(source.rules(), available));
+                source.nbtStyleKey(), rules(source.rules(), available), source.decorationRules());
     }
 }

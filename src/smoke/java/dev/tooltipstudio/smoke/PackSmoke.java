@@ -185,7 +185,7 @@ final class PackSmoke extends Screen {
     }
     @Override public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         context.fill(0, 0, width, height, 0xff17202e);
-        context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.4 / 分类路径实测", width / 2, 16, 0xffffff);
+        context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.5 / 分类路径实测", width / 2, 16, 0xffffff);
         context.drawCenteredTextWithShadow(textRenderer, "样式 JSON + PNG + 匹配规则全部来自已启用的 ZIP 资源包", width / 2, 35, 0xa8c5dd);
         for (int i = 0; i < samples.length; i++) {
             int y = 95 + i * 108;

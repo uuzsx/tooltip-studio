@@ -1,3 +1,12 @@
+# 1.5
+
+- 新增独立 decorations 定义与 decorationRules，匹配后在已选 tooltip 上额外绘制图片，不替换背景、边框、分割线或文字布局；适用于默认款、本地样式、资源包样式及 TooltipStyle 覆盖。
+- 装饰可引用单独的 PNG，并使用 region、九个 anchor、x/y 与 foreground 指定取图区域、位置与绘制层。本地和资源包均支持多层分类路径、覆盖和热重载。
+- 沿用 ID、tag、稀有度和 NBT 条件，多条命中同时叠加，相同 ID 去重；同层按 priority 与稳定顺序绘制，单次最多 64 项。完整 tooltip 的偏移、缩放和屏幕边缘限制包含独立装饰。
+- 装饰与基础样式共同校验并一次性更新；无效 JSON、引用或贴图保留之前的完整状态。旧配置可省略 decorationRules，无需迁移；原有样式内装饰继续使用。
+- 增加 /tooltipstudio decorations 命令，重载提示同时显示样式与独立装饰数量。
+- 提供用户 test.png 的四角剑示例、本地文件与独立资源包；示例包匹配云杉木门和 Monumenta.Location，不包含基础样式定义。默认 JAR 仍只内置 default tooltip。
+
 # 1.4
 
 - 默认基础款使用用户朋友提供的 Default.png 与 defalut.json，样式 ID 为 default；PNG 原样内置，JSON 仅调整贴图引用路径。
