@@ -42,6 +42,8 @@
   },
   "minWidth": 100,
   "maxWidth": 320,
+  "offsetX": 0,
+  "offsetY": -12,
   "decorations": [
     {
       "region": {

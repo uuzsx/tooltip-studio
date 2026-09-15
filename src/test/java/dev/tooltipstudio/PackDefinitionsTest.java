@@ -162,6 +162,9 @@ class PackDefinitionsTest {
                 List.of(new DirectoryResourcePack("example", example, false)))) {
             var pack = PackDefinitions.load(manager);
             assertEquals(Set.of("pack_forest", "pack_wood", "monumenta/forest"), pack.styles().keySet());
+            assertEquals(0, pack.styles().get("monumenta/forest").offsetX());
+            assertEquals(-12, pack.styles().get("monumenta/forest").offsetY());
+            assertEquals(0, pack.styles().get("pack_forest").offsetY());
             assertEquals(3, pack.mergeRules(LOCAL, pack.styles().keySet()).size());
             for (var style : pack.styles().values()) {
                 try (var stream = manager.getResource(new net.minecraft.util.Identifier(style.texture())).orElseThrow().getInputStream()) {

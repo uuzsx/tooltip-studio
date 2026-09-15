@@ -1,11 +1,11 @@
 # Tooltip Studio 资源包示例
 
-需要 **Tooltip Studio 1.2 + Fabric / Minecraft 1.20.4**。这是资源包，放进游戏实例的 `resourcepacks` 文件夹，在游戏“选项 → 资源包”中启用；无需修改本地配置。新版示例使用 1.2 新增的分类路径，旧版模组需要先升级。
+需要 **Tooltip Studio 1.3 + Fabric / Minecraft 1.20.4**。这是资源包，放进游戏实例的 `resourcepacks` 文件夹，在游戏“选项 → 资源包”中启用；无需修改本地配置。新版示例使用分类路径与整体位置偏移，旧版模组需要先升级。
 
 启用后：
 
 - 普通木棍和属于 `minecraft:planks` 标签的木板使用 `pack_wood` 样式。
-- 任意基底的物品，只要客户端 NBT 中 `Monumenta.Location` 精确为 `forest`，就使用 `monumenta/forest` 样式。
+- 任意基底的物品，只要客户端 NBT 中 `Monumenta.Location` 精确为 `forest`，就使用 `monumenta/forest` 样式，并向上移动 12 个 GUI 像素。
 - 其他物品继续使用现有规则与默认样式。
 
 如果物品有有效的 `TooltipStyle`，它仍具有最高优先级；自定义本地规则的 priority 更高时，也会优先于本示例规则。
@@ -40,6 +40,13 @@ PNG 可以放在资源包中任意合法命名空间路径，例如 `assets/myse
 样式分类与贴图位置独立；本例 `monumenta/forest` 和保留的 `pack_forest` 都引用已有的 `tooltipstudio:textures/styles/pack_forest.png`，无需复制图片。
 
 只有样式 JSON 时会注册新样式，还需要通过规则、defaultStyle 或物品 TooltipStyle 选用它。本例已经附带自动匹配规则。
+
+## 整体位置偏移（1.3 新增）
+
+在样式 JSON 最外层添加 `"offsetX": 0, "offsetY": -12` 即可向上移动整框 12 个 GUI 像素。两个字段各自默认 0，可只写一个；整数范围为 -4096..4096。
+X 正数向右、负数向左，Y 正数向下、负数向上。背景、边框、名称、分割线、正文、装饰及框内预览一起移动。参数放在样式中，与 texture 同级，不放在规则中。
+偏移在正常定位和自动缩放之后计算，单位跟随 Minecraft GUI 缩放。最终仍保留屏幕四周 4 个 GUI 像素的空间，包含外部装饰；贴边或已占满屏幕高度时会限制实际位移。
+本例的 `monumenta/forest` 已设置向上偏移 12，保留的 `pack_forest` 不设置偏移，两者仍使用同一张 PNG。修改后按 F3+T 重载。
 
 ## 匹配规则
 

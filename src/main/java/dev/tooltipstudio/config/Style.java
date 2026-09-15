@@ -2,10 +2,11 @@ package dev.tooltipstudio.config;
 
 import java.util.List;
 
-/** All coordinates refer to the one PNG named by texture. Units are GUI pixels. */
+/** Atlas regions refer to one PNG; layout and whole-tooltip offsets use GUI pixels. */
 public record Style(String texture, int textureWidth, int textureHeight,
                     Region background, Frame frame, Separator separator,
-                    Insets padding, int minWidth, int maxWidth, List<Decoration> decorations) {
+                    Insets padding, int minWidth, int maxWidth, List<Decoration> decorations,
+                    int offsetX, int offsetY) {
     public record Region(int u, int v, int width, int height) {}
     public record Insets(int left, int top, int right, int bottom) {}
     public record Frame(Region region, int left, int top, int right, int bottom) {}
@@ -32,6 +33,8 @@ public record Style(String texture, int textureWidth, int textureHeight,
         require(padding.left <= 128 && padding.right <= 128 && padding.top <= 128 && padding.bottom <= 128,
                 "padding must be at most 128");
         require(minWidth > 0 && maxWidth >= minWidth && maxWidth <= 2048, "invalid minWidth/maxWidth");
+        require(Math.abs((long) offsetX) <= 4096 && Math.abs((long) offsetY) <= 4096,
+                "offsetX/offsetY must be -4096..4096");
         if (separator != null && separator.enabled) {
             region(separator.region, "separator.region");
             require(separator.leftCap >= 0 && separator.rightCap >= 0

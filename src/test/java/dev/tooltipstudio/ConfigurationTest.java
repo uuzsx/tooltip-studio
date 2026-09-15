@@ -25,7 +25,12 @@ class ConfigurationTest {
     @Test void allBundledStylesAndRulesAreValid() throws Exception {
         var names = resource("styles.json", String[].class);
         assertEquals(9, names.length);
-        for (String name : names) resource("styles/" + name + ".json", Style.class).validate();
+        for (String name : names) {
+            var style = resource("styles/" + name + ".json", Style.class);
+            style.validate();
+            assertEquals(0, style.offsetX(), "old JSON defaults to no horizontal offset");
+            assertEquals(0, style.offsetY(), "old JSON defaults to no vertical offset");
+        }
         resource("config.json", Settings.class).validate(new HashSet<>(List.of(names)));
     }
 
@@ -64,6 +69,34 @@ class ConfigurationTest {
         assertTrue(Settings.glob("*:gem.*").matcher("test:gem.red").matches());
         assertFalse(Settings.glob("*:gem.*").matcher("test:gemXred").matches());
         assertTrue(Settings.glob("*:*gem*").matcher("test:red_gemstone").matches());
+    }
+
+    @Test void optionalTooltipOffsetsLoadIndependentlyAndRejectExtremeValues() throws Exception {
+        var json = gson.toJsonTree(resource("styles/rare.json", Style.class)).getAsJsonObject();
+        json.remove("offsetX");
+        json.addProperty("offsetY", -12);
+        var up = gson.fromJson(json, Style.class);
+        up.validate();
+        assertEquals(0, up.offsetX());
+        assertEquals(-12, up.offsetY());
+        json.addProperty("offsetX", 24);
+        json.addProperty("offsetY", 16);
+        var downRight = gson.fromJson(json, Style.class);
+        downRight.validate();
+        assertEquals(24, downRight.offsetX());
+        assertEquals(16, downRight.offsetY());
+        for (String field : List.of("offsetX", "offsetY")) {
+            for (int value : new int[]{-4096, 4096}) {
+                var valid = json.deepCopy();
+                valid.addProperty(field, value);
+                assertDoesNotThrow(() -> gson.fromJson(valid, Style.class).validate());
+            }
+            for (int value : new int[]{-4097, 4097, Integer.MIN_VALUE, Integer.MAX_VALUE}) {
+                var invalid = json.deepCopy();
+                invalid.addProperty(field, value);
+                assertThrows(IllegalArgumentException.class, () -> gson.fromJson(invalid, Style.class).validate());
+            }
+        }
     }
 
     @Test void unknownStylesAndEmptyRulesAreRejected() {

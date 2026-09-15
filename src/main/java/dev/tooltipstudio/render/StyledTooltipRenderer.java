@@ -78,8 +78,8 @@ public final class StyledTooltipRenderer {
         int visualWidth = (int) Math.ceil((right - left) * scale);
         int visualHeight = (int) Math.ceil((bottom - top) * scale);
         var position = HoveredTooltipPositioner.INSTANCE.getPosition(screenWidth, screenHeight, mouseX, mouseY, visualWidth, visualHeight);
-        int px = Math.max(4, Math.min(screenWidth - visualWidth - 4, position.x()));
-        int py = Math.max(4, Math.min(screenHeight - visualHeight - 4, position.y()));
+        int px = TooltipPlacement.offset(position.x(), visualWidth, screenWidth, style.offsetX());
+        int py = TooltipPlacement.offset(position.y(), visualHeight, screenHeight, style.offsetY());
         var matrices = context.getMatrices();
         float[] color = RenderSystem.getShaderColor().clone();
         context.draw();

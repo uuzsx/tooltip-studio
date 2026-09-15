@@ -4,7 +4,7 @@
 
 通过配置或资源包中的 JSON 和单张贴图自定义物品提示框，支持名称居中、装饰分割线及物品与 NBT 匹配。
 
-作者：**幼幼紫、千村**。当前版本 **1.2，只支持 Minecraft 1.20.4**，为纯客户端模组。
+作者：**幼幼紫、千村**。当前版本 **1.3，只支持 Minecraft 1.20.4**，为纯客户端模组。
 
 项目仓库：[uuzsx/tooltip-studio](https://github.com/uuzsx/tooltip-studio)。
 
@@ -13,7 +13,7 @@
 ## 安装
 
 1. 使用 Minecraft **1.20.4 + Fabric Loader 0.15.11 或更新版**。
-2. 在游戏实例的 `mods/` 中放入 `tooltip-studio-1.2+1.20.4.jar` 和 **适用于 1.20.4 的 Fabric API**。
+2. 在游戏实例的 `mods/` 中放入 `tooltip-studio-1.3+1.20.4.jar` 和 **适用于 1.20.4 的 Fabric API**。
 3. 启动游戏。第一次运行会自动生成下面的配置目录。服务端无需安装。
 
 Fabric API 下载：<https://modrinth.com/mod/fabric-api/versions?g=1.20.4>
@@ -21,7 +21,7 @@ Fabric API 下载：<https://modrinth.com/mod/fabric-api/versions?g=1.20.4>
 ```text
 游戏实例/
 ├─ mods/
-│  └─ tooltip-studio-1.2+1.20.4.jar
+│  └─ tooltip-studio-1.3+1.20.4.jar
 └─ config/tooltipstudio/
    ├─ config.json            全局开关、默认样式、物品匹配规则
    ├─ styles/
@@ -43,6 +43,7 @@ Fabric API 下载：<https://modrinth.com/mod/fabric-api/versions?g=1.20.4>
 - 本地 PNG 和资源包贴图均可使用。JSON 和本地 PNG 修改后可直接重载。
 - 资源包可提供完整的样式 JSON、PNG 和匹配规则，启用后自动加载，停用后移除，支持 F3+T 重载。
 - 本地和资源包样式均支持多层文件夹分类，例如 `monumenta/forest`；原有单层样式 ID 保持有效。
+- 每套样式可选填 `offsetX` / `offsetY`，让整个 tooltip 水平或垂直移动；保留屏幕边缘限制。
 - 保留物品文字颜色与格式、附魔说明、原版和 Fabric 添加的 lore，以及原版收纳袋的图形 tooltip 组件。
 - 长行自动换行；位置计算包含框外装饰。极长、极高的 tooltip 超出屏幕时整体缩小以完整显示。
 - 错误 JSON、无效坐标、缺失贴图或图片尺寸不符会拒绝重载，并保留上次成功配置。首次加载失败则使用原版 tooltip。
@@ -199,7 +200,7 @@ Fabric API 下载：<https://modrinth.com/mod/fabric-api/versions?g=1.20.4>
 同路径规则文件由高优先级包整份替换，空 rules 数组可屏蔽低优先级包的该文件。全局 enabled、defaultStyle 和 nbtStyleKey 仍由本地配置控制。
 无效资源包 JSON 或贴图会保留上次成功配置。停用包时，它自带的规则和独有样式会移除；若本地规则手动引用了被移除的样式，也需要同步调整本地引用。
 
-可直接安装的完整示例和详细用法位于 [examples/resource-pack](examples/resource-pack/README.md)：普通木棍/木板使用 pack_wood，Monumenta.Location 为 forest 的物品使用 monumenta/forest。新版示例包需要 1.2；1.1 的旧示例包仍可在 1.2 中使用。
+可直接安装的完整示例和详细用法位于 [examples/resource-pack](examples/resource-pack/README.md)：普通木棍/木板使用 pack_wood，Monumenta.Location 为 forest 的物品使用 monumenta/forest，并向上偏移 12 个界面像素。新版示例效果需要 1.3；旧版配置与资源包仍可继续使用。
 本功能参考了 [Legendary Tooltips 的资源定义加载方式](https://github.com/AHilyard/LegendaryTooltips/blob/3d3dbacb1fb90dd8480e9323a74a3c0ab6bfa4fc/src/main/java/com/anthonyhilyard/legendarytooltips/config/FrameResourceParser.java)，使用本项目自己的 JSON 格式与实现，不直接读取其 frame_definitions.json。
 
 ## 按文件夹分类样式（1.2 新增）
@@ -271,6 +272,7 @@ Fabric API 下载：<https://modrinth.com/mod/fabric-api/versions?g=1.20.4>
 | `separator.marginTop/marginBottom` | 分割线与文字行区域之间的间距 |
 | `padding` | 正文与整个面板外缘的距离；应至少等于边框宽度 |
 | `minWidth/maxWidth` | 正文区域的最小宽度与换行宽度，不包含 padding；过窄的屏幕会降低正常换行宽度 |
+| `offsetX/offsetY` | 可选，各自默认 0；整框在屏幕上的水平/垂直偏移，整数 -4096..4096，单位为 GUI 像素；X 正右负左，Y 正下负上 |
 | `decorations` | 装饰数组，可为空 `[]`，最多 64 个区域 |
 
 分割线的显示高度就是 `region.height`，不会因面板高度变化而拉伸。它的三段关系如下：
@@ -286,6 +288,22 @@ Fabric API 下载：<https://modrinth.com/mod/fabric-api/versions?g=1.20.4>
 装饰 `anchor` 可为 `TOP_LEFT`、`TOP`、`TOP_RIGHT`、`LEFT`、`CENTER`、`RIGHT`、`BOTTOM_LEFT`、`BOTTOM`、`BOTTOM_RIGHT`。
 锚点按**装饰与面板的对应边或中心**对齐，再加 `x/y` 偏移。例如 `TOP` 将装饰水平居中、顶部对齐；负 `y` 向框外上方移动。
 `foreground: false` 在文字前绘制；`true` 在文字后绘制。装饰按数组顺序叠加。
+
+## 调整整个 tooltip 的位置（1.3 新增）
+
+在样式 JSON 最外层，与 `texture`、`padding`、`decorations` 同级添加以下两项，保留其他字段：
+
+```json
+"offsetX": 0,
+"offsetY": -12
+```
+
+这样会向上移动 12 个界面像素。X 正数向右、负数向左；Y 正数向下、负数向上。两个字段都可省略，也可只写其中一个，未写的值为 0。
+边框、背景、名称、分割线、正文、装饰和框内物品预览一起移动，文字与框之间的间距保持不变。字段属于每套样式，适用于本地与资源包 JSON；不写在匹配规则里。
+偏移从原来正常显示的位置计算，在自动换行、缩放和鼠标侧边选择之后应用。单位跟随 Minecraft GUI 缩放，不是图片像素或显示器物理像素；tooltip 因过长而整体缩小时，偏移值本身不会再缩小。
+最终位置仍保留屏幕边缘 4 个 GUI 像素的空间（含框外装饰），到达边缘时会限制实际移动距离。已占满屏幕高度的长 tooltip 可能无法继续上下移动。
+更新本地 JSON 后执行 `/tooltipstudio reload`；更新资源包后按 **F3+T**。如果资源包覆盖了同名本地样式，应修改当前生效的资源包 JSON。
+可转发的详细说明见 [examples/offsets](examples/offsets/README.md)。
 
 ## 替换内置贴图：资源包方式
 
@@ -321,8 +339,8 @@ $env:JAVA_HOME = 'C:\Program Files\Java\jdk-17'
 .\gradlew.bat build
 ```
 
-产物在 `build/libs/tooltip-studio-1.2+1.20.4.jar`。模组元数据中的版本为 `1.2`，文件名中的 `+1.20.4` 表示适用的 Minecraft 版本。`-sources.jar` 是源码，不是游戏加载的模组文件。
-构建也会生成 `build/resourcepacks/tooltip-studio-example-pack-1.2+1.20.4.zip`，可直接放进游戏的 resourcepacks 文件夹启用。
+产物在 `build/libs/tooltip-studio-1.3+1.20.4.jar`。模组元数据中的版本为 `1.3`，文件名中的 `+1.20.4` 表示适用的 Minecraft 版本。`-sources.jar` 是源码，不是游戏加载的模组文件。
+构建也会生成 `build/resourcepacks/tooltip-studio-example-pack-1.3+1.20.4.zip`，可直接放进游戏的 resourcepacks 文件夹启用。
 第一次构建需要联网下载 Gradle、Minecraft 开发依赖和 Fabric。
 
 - `gradlew.bat test`：验证示例 JSON、纹理区域边界、通配符、错误配置、分割线端点保持，以及 NBT 路径、值类型、只读匹配与缺失字段处理。
@@ -344,7 +362,7 @@ Fabric 的物品文字 tooltip 回调继续生效。0.1.1 修复了与 Shulker B
 
 ## 从 1.0 或 0.1.x 更新
 
-从 mods 文件夹移除旧版 Tooltip Studio JAR，放入 `tooltip-studio-1.2+1.20.4.jar`，同一时间只保留一个版本。已有 JSON 与 PNG 配置无需迁移。需要 NBT 匹配功能时在规则中添加 `nbt`。MixinExtras 0.4.1 已内嵌，无需另外安装；Shulker Box Tooltip 仍是可选模组。
+从 mods 文件夹移除旧版 Tooltip Studio JAR，放入 `tooltip-studio-1.3+1.20.4.jar`，同一时间只保留一个版本。已有 JSON 与 PNG 配置无需迁移，未填写 offsetX/offsetY 的样式保持原来位置。需要 NBT 匹配功能时在规则中添加 `nbt`。MixinExtras 0.4.1 已内嵌，无需另外安装；Shulker Box Tooltip 仍是可选模组。
 
 开发者兼容回归：`gradlew.bat runSmoke -PcompatShulker`。此开关仅向测试运行加入 Shulker Box Tooltip 4.1.0 与 Cloth Config 13.0.121，不会打包它们。
 

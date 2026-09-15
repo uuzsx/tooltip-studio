@@ -134,6 +134,8 @@ final class PackSmoke extends Screen {
         check(selected(samples[0]).texture().endsWith("/pack_wood.png") && selected(samples[1]).texture().endsWith("/pack_forest.png"),
                 "resource pack supplies item ID and Monumenta NBT matching rules");
         check(selected(samples[2]).texture().endsWith("/rare.png"), "unmatched items retain existing default style");
+        check(selected(samples[1]).offsetX() == 0 && selected(samples[1]).offsetY() == -12,
+                "resource-pack style supplies optional whole-tooltip offsets");
     }
 
     private void testLocalRules() {
@@ -178,7 +180,7 @@ final class PackSmoke extends Screen {
     }
     @Override public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         context.fill(0, 0, width, height, 0xff17202e);
-        context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.2 / 分类路径实测", width / 2, 16, 0xffffff);
+        context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.3 / 分类路径实测", width / 2, 16, 0xffffff);
         context.drawCenteredTextWithShadow(textRenderer, "样式 JSON + PNG + 匹配规则全部来自已启用的 ZIP 资源包", width / 2, 35, 0xa8c5dd);
         for (int i = 0; i < samples.length; i++) {
             int y = 95 + i * 108;

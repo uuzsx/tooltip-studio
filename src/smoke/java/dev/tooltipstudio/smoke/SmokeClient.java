@@ -51,7 +51,7 @@ public final class SmokeClient implements ClientModInitializer {
                     client.onResolutionChanged();
                     client.reloadResources().thenRun(() -> {
                         check(TooltipStudioClient.CONFIG.count() == 9, "resource reload retained all styles");
-                        PackSmoke.start(client, () -> NbtSmoke.start(client, new Gallery()));
+                        PackSmoke.start(client, () -> OffsetSmoke.start(client, () -> NbtSmoke.start(client, new Gallery())));
                     }).exceptionally(failure -> {
                         failure.printStackTrace();
                         client.scheduleStop();
@@ -220,6 +220,7 @@ public final class SmokeClient implements ClientModInitializer {
             }
             frames++;
             if (frames > (shulker == null ? 120 : 180) && saved.get() == (shulker == null ? 3 : 4)) {
+                if (shulker != null) shulker.close(client);
                 System.out.println("SMOKE COMPLETE");
                 client.scheduleStop();
             }

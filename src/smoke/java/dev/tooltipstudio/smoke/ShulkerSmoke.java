@@ -4,6 +4,8 @@ import com.misterpemodder.shulkerboxtooltip.ShulkerBoxTooltip;
 import com.misterpemodder.shulkerboxtooltip.ShulkerBoxTooltipClient;
 import com.misterpemodder.shulkerboxtooltip.impl.config.Configuration.PreviewPosition;
 import dev.tooltipstudio.render.TooltipRenderScope;
+import dev.tooltipstudio.TooltipStudioClient;
+import com.google.gson.JsonParser;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -14,6 +16,8 @@ import net.minecraft.nbt.NbtList;
 import net.minecraft.text.Text;
 
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /** Runs only with -PcompatShulker; no third-party test code is packaged into the mod. */
 final class ShulkerSmoke {
@@ -23,13 +27,22 @@ final class ShulkerSmoke {
     private final ItemStack box = new ItemStack(Items.PURPLE_SHULKER_BOX);
     private final ItemStack other = new ItemStack(Items.DIAMOND);
     private final Field lockKey;
+    private final Path offsetStyle;
 
     ShulkerSmoke(MinecraftClient client, int width, int height) {
         // SBT normally registers providers on world join; this screen test creates no world.
         com.misterpemodder.shulkerboxtooltip.impl.PluginManager.loadProviders();
         for (var screen : new SmokeClient.SlotHarness[]{inside, outside, lock}) screen.init(client, width, height);
-        box.setCustomName(Text.literal("Shulker preview / Legendary"));
-        box.getOrCreateNbt().putString("TooltipStyle", "legendary");
+        box.setCustomName(Text.literal("Shulker preview / offset (+16, -12)"));
+        box.getOrCreateNbt().putString("TooltipStyle", "smoke_shulker_offset");
+        offsetStyle = client.runDirectory.toPath().resolve("config/tooltipstudio/styles/smoke_shulker_offset.json");
+        try {
+            var json = JsonParser.parseString(Files.readString(offsetStyle.resolveSibling("legendary.json"))).getAsJsonObject();
+            json.addProperty("offsetX", 16);
+            json.addProperty("offsetY", -12);
+            Files.writeString(offsetStyle, json.toString());
+            if (!TooltipStudioClient.CONFIG.reload(client.getResourceManager())) throw new IllegalStateException("Shulker offset style did not load");
+        } catch (Exception e) { throw new IllegalStateException(e); }
         NbtList contents = new NbtList();
         NbtCompound diamond = new ItemStack(Items.DIAMOND, 32).writeNbt(new NbtCompound());
         diamond.putByte("Slot", (byte) 0);
@@ -44,6 +57,13 @@ final class ShulkerSmoke {
             lockKey.setAccessible(true);
         } catch (ReflectiveOperationException e) { throw new IllegalStateException(e); }
         if (box.getTooltipData().isEmpty()) throw new AssertionError("Shulker preview data missing");
+    }
+
+    void close(MinecraftClient client) {
+        try {
+            Files.deleteIfExists(offsetStyle);
+            if (!TooltipStudioClient.CONFIG.reload(client.getResourceManager())) throw new IllegalStateException("Shulker styles did not restore");
+        } catch (Exception e) { throw new IllegalStateException(e); }
     }
 
     void render(DrawContext context, TextRenderer font) {
