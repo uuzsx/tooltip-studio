@@ -23,6 +23,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Real client selection, hot reload and rendering checks; does not join a server or create a world. */
 final class NbtSmoke extends Screen {
+    // Temporary selection markers all use the one default PNG; no former preset graphics are needed.
+    private static final List<String> VARIANTS = List.of("red_book", "epic", "mythical", "legendary", "uncommon", "cat_bell");
     private static final String RULES = """
             [
               {"style":"red_book","priority":500,"items":["minecraft:chainmail_chestplate"],"nbt":{"plain.display.Name":"Double Down"}},
@@ -37,6 +39,7 @@ final class NbtSmoke extends Screen {
     private final Screen next;
     private final Path config;
     private final byte[] backup;
+    private final java.util.ArrayList<Path> temporaryStyles = new java.util.ArrayList<>();
     private final AtomicBoolean saved = new AtomicBoolean();
     private boolean restored;
     private int frames;
@@ -83,12 +86,33 @@ final class NbtSmoke extends Screen {
     }
 
     private static boolean style(ItemStack stack, String expected) {
-        return TooltipStudioClient.CONFIG.select(stack).style().texture().equals("tooltipstudio:textures/styles/" + expected + ".png");
+        var selected = TooltipStudioClient.CONFIG.select(stack).style();
+        return selected.texture().equals("tooltipstudio:textures/styles/default.png")
+                && selected.offsetX() == VARIANTS.indexOf(expected) + 1;
     }
 
     private void verify(MinecraftClient client) throws Exception {
+        for (String name : VARIANTS) {
+            var variant = SmokeClient.baseDefinition();
+            variant.addProperty("offsetX", VARIANTS.indexOf(name) + 1);
+            Path file = config.getParent().resolve("styles/smoke_nbt/" + name + ".json");
+            Files.createDirectories(file.getParent());
+            Files.writeString(file, variant.toString());
+            temporaryStyles.add(file);
+        }
         var json = JsonParser.parseString(Files.readString(config)).getAsJsonObject();
+        json.addProperty("defaultStyle", "default");
         JsonArray rules = JsonParser.parseString(RULES).getAsJsonArray();
+        for (var rule : rules) {
+            var object = rule.getAsJsonObject();
+            object.addProperty("style", "smoke_nbt/" + object.get("style").getAsString());
+        }
+        rules.add(JsonParser.parseString("""
+                {"style":"smoke_nbt/legendary","priority":100,"items":["minecraft:netherite_*"]}
+                """));
+        rules.add(JsonParser.parseString("""
+                {"style":"smoke_nbt/uncommon","priority":30,"rarities":["uncommon"]}
+                """));
         rules.addAll(json.getAsJsonArray("rules"));
         json.add("rules", rules);
         Files.writeString(config, json.toString());
@@ -128,7 +152,7 @@ final class NbtSmoke extends Screen {
         var wrongBase = new ItemStack(Items.STICK);
         wrongBase.setNbt(chestplate.getNbt().copy());
         check(style(wrongBase, "rare"), "plain name rule requires the configured base item");
-        chestplate.getOrCreateNbt().putString("TooltipStyle", "cat_bell");
+        chestplate.getOrCreateNbt().putString("TooltipStyle", "smoke_nbt/cat_bell");
         check(style(chestplate, "cat_bell"), "explicit TooltipStyle override still wins over NBT rules");
         var transported = ItemStack.fromNbt(samples[0].writeNbt(new NbtCompound()));
         var originalNbt = transported.getNbt().copy();
@@ -163,7 +187,7 @@ final class NbtSmoke extends Screen {
 
     @Override public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         context.fill(0, 0, width, height, 0xff17202e);
-        context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.3 / NBT 匹配实测", width / 2, 14, 0xffffff);
+        context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.4 / NBT 匹配实测", width / 2, 14, 0xffffff);
         context.drawCenteredTextWithShadow(textRenderer, "全部为 minecraft:stick，未设置 TooltipStyle", width / 2, 31, 0x9ec5df);
         for (int i = 0; i < samples.length; i++) {
             int x = 18 + (i % 2) * (width / 2);
@@ -186,6 +210,7 @@ final class NbtSmoke extends Screen {
         if (restored) return;
         try {
             Files.write(config, backup);
+            for (Path file : temporaryStyles) Files.deleteIfExists(file);
             check(TooltipStudioClient.CONFIG.reload(client.getResourceManager()), "original config restored after NBT smoke");
             restored = true;
         } catch (Exception e) { throw new IllegalStateException("Could not restore smoke config", e); }

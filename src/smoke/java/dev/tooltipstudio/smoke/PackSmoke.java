@@ -27,12 +27,13 @@ import java.util.zip.ZipOutputStream;
 /** Enables a real ZIP resource pack, exercises F3+T's reload path, then removes it before other smoke tests. */
 final class PackSmoke extends Screen {
     private static final String BASE = "file/tooltip-studio-pack-smoke.zip";
-    private static final String HIGH = "file/tooltip-studio-pack-override-12";
+    private static final String HIGH = "file/tooltip-studio-pack-override-14";
     private final MinecraftClient minecraft;
     private final Runnable after;
     private final List<String> originalPacks;
     private final Path config;
     private final byte[] originalConfig;
+    private final String fallbackStyle, fallbackTexture;
     private final Path highStyle;
     private final String validHighStyle;
     private final AtomicBoolean saved = new AtomicBoolean();
@@ -49,6 +50,8 @@ final class PackSmoke extends Screen {
         Path run = client.runDirectory.toPath().toAbsolutePath().normalize();
         config = run.resolve("config/tooltipstudio/config.json");
         originalConfig = Files.readAllBytes(config);
+        fallbackStyle = "default";
+        fallbackTexture = selected(samples[2]).texture();
         Path example = run.getParent().resolve("examples/resource-pack");
         Path packFolder = run.resolve("resourcepacks");
         Files.createDirectories(packFolder);
@@ -60,23 +63,25 @@ final class PackSmoke extends Screen {
                 zip.closeEntry();
             }
         }
-        Path high = packFolder.resolve("tooltip-studio-pack-override-12");
+        Path high = packFolder.resolve("tooltip-studio-pack-override-14");
         highStyle = high.resolve("assets/tooltipstudio/styles/monumenta/forest.json");
         Files.createDirectories(highStyle.getParent());
         Files.writeString(high.resolve("pack.mcmeta"), "{\"pack\":{\"pack_format\":22,\"description\":\"Override smoke test\"}}");
         var style = JsonParser.parseString(Files.readString(example.resolve("assets/tooltipstudio/styles/monumenta/forest.json"))).getAsJsonObject();
-        style.addProperty("texture", "tooltipstudio:textures/styles/epic.png");
+        style.addProperty("texture", "tooltipstudio:textures/styles/default.png");
         style.addProperty("minWidth", 180);
         validHighStyle = style.toString();
         Files.writeString(highStyle, validHighStyle);
         style.addProperty("minWidth", 140);
-        Files.writeString(high.resolve("assets/tooltipstudio/styles/rare.json"), style.toString());
+        Path fallbackOverride = high.resolve("assets/tooltipstudio/styles/" + fallbackStyle + ".json");
+        Files.createDirectories(fallbackOverride.getParent());
+        Files.writeString(fallbackOverride, style.toString());
         Path rules = high.resolve("assets/tooltipstudio/rules/example.json");
         Files.createDirectories(rules.getParent());
         Files.writeString(rules, "{\"schemaVersion\":1,\"rules\":[]}");
-        title(samples[0], "资源包：普通木棍", "items -> pack_wood");
+        title(samples[0], "资源包：普通木棍", "items -> monumenta/forest");
         title(samples[1], "分类样式：森林物品", "style = monumenta/forest");
-        title(samples[2], "原有样式：普通钻石", "No pack rule -> rare");
+        title(samples[2], "默认样式：普通钻石", "No pack rule -> " + fallbackStyle);
     }
 
     static void start(MinecraftClient client, Runnable after) {
@@ -94,14 +99,14 @@ final class PackSmoke extends Screen {
             var explicit = new ItemStack(Items.DIAMOND);
             explicit.getOrCreateNbt().putString("TooltipStyle", "monumenta/forest");
             check(selected(explicit).minWidth() == 180, "higher resource pack wins for the same style JSON");
-            explicit.getOrCreateNbt().putString("TooltipStyle", "pack_forest");
-            check(selected(explicit).texture().endsWith("/pack_forest.png"), "nested pack override leaves flat style independent");
+            explicit.getOrCreateNbt().putString("TooltipStyle", "default");
+            check(selected(explicit).minWidth() == 140, "nested pack override leaves base style independent");
             try { Files.writeString(highStyle, "{broken-json"); }
             catch (Exception e) { throw new IllegalStateException(e); }
         }).thenCompose(ignored -> reload(BASE, HIGH)).thenRun(() -> {
             check(TooltipStudioClient.CONFIG.lastError() != null && TooltipStudioClient.CONFIG.lastError().contains("styles/monumenta/forest.json"),
                     "invalid pack JSON reports its resource path after full resource reload");
-            check(TooltipStudioClient.CONFIG.count() == 12 && selected(samples[0]).minWidth() == 140,
+            check(TooltipStudioClient.CONFIG.count() == 2 && selected(samples[0]).minWidth() == 140,
                     "failed pack reload retains previous working styles and rules");
             try {
                 JsonObject missing = JsonParser.parseString(validHighStyle).getAsJsonObject();
@@ -129,11 +134,11 @@ final class PackSmoke extends Screen {
     }
 
     private void verifyBase() {
-        check(TooltipStudioClient.CONFIG.count() == 12 && TooltipStudioClient.CONFIG.styleNames().contains("monumenta/forest"),
-                "ZIP resource pack adds flat and nested styles without local JSON installation");
-        check(selected(samples[0]).texture().endsWith("/pack_wood.png") && selected(samples[1]).texture().endsWith("/pack_forest.png"),
+        check(TooltipStudioClient.CONFIG.count() == 2 && TooltipStudioClient.CONFIG.styleNames().contains("monumenta/forest"),
+                "ZIP resource pack adds one categorized style using the default atlas");
+        check(selected(samples[0]).offsetY() == -12 && selected(samples[1]).offsetY() == -12,
                 "resource pack supplies item ID and Monumenta NBT matching rules");
-        check(selected(samples[2]).texture().endsWith("/rare.png"), "unmatched items retain existing default style");
+        check(selected(samples[2]).texture().equals(fallbackTexture) && selected(samples[2]).offsetY() == 0, "unmatched items retain existing default style");
         check(selected(samples[1]).offsetX() == 0 && selected(samples[1]).offsetY() == -12,
                 "resource-pack style supplies optional whole-tooltip offsets");
     }
@@ -142,14 +147,14 @@ final class PackSmoke extends Screen {
         try {
             var json = JsonParser.parseString(Files.readString(config)).getAsJsonObject();
             json.getAsJsonArray("rules").add(JsonParser.parseString("""
-                    {"style":"cat_bell","priority":190,"items":["minecraft:stick"]}
+                    {"style":"default","priority":190,"items":["minecraft:stick"]}
                     """));
             Files.writeString(config, json.toString());
             check(TooltipStudioClient.CONFIG.reload(minecraft.getResourceManager()), "local and resource-pack rules can reload together");
-            check(selected(samples[0]).texture().endsWith("/cat_bell.png"), "local rule wins a priority tie against pack rule");
+            check(selected(samples[0]).offsetY() == 0, "local rule wins a priority tie against pack rule");
             var explicit = new ItemStack(Items.STICK);
             explicit.getOrCreateNbt().putString("TooltipStyle", "monumenta/forest");
-            check(selected(explicit).texture().endsWith("/pack_forest.png"), "TooltipStyle can select a resource-pack style path");
+            check(selected(explicit).offsetY() == -12, "TooltipStyle can select a resource-pack style path");
         } catch (Exception e) { throw new IllegalStateException(e); }
         finally {
             try { Files.write(config, originalConfig); }
@@ -180,7 +185,7 @@ final class PackSmoke extends Screen {
     }
     @Override public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         context.fill(0, 0, width, height, 0xff17202e);
-        context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.3 / 分类路径实测", width / 2, 16, 0xffffff);
+        context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.4 / 分类路径实测", width / 2, 16, 0xffffff);
         context.drawCenteredTextWithShadow(textRenderer, "样式 JSON + PNG + 匹配规则全部来自已启用的 ZIP 资源包", width / 2, 35, 0xa8c5dd);
         for (int i = 0; i < samples.length; i++) {
             int y = 95 + i * 108;
@@ -193,9 +198,9 @@ final class PackSmoke extends Screen {
         if (saved.get() && !finishing) {
             finishing = true;
             reload().thenRun(() -> {
-                check(TooltipStudioClient.CONFIG.count() == 9 && !TooltipStudioClient.CONFIG.styleNames().contains("monumenta/forest"),
+                check(TooltipStudioClient.CONFIG.count() == 1 && !TooltipStudioClient.CONFIG.styleNames().contains("monumenta/forest"),
                         "disabling resource packs removes their styles and rules");
-                check(selected(samples[0]).texture().endsWith("/rare.png"), "disabling pack restores original tooltip selection");
+                check(selected(samples[0]).texture().equals(fallbackTexture), "disabling pack restores original tooltip selection");
                 try { check(Arrays.equals(originalConfig, Files.readAllBytes(config)), "pack loading leaves local config file unchanged"); }
                 catch (Exception e) { throw new IllegalStateException(e); }
                 after.run();

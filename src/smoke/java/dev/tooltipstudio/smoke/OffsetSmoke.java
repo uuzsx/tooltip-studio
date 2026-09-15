@@ -40,7 +40,7 @@ final class OffsetSmoke extends Screen {
         baseFile = config.resolve("smoke_offsets/base.json");
         shiftedFile = config.resolve("smoke_offsets/shifted.json");
         Files.createDirectories(baseFile.getParent());
-        definition = JsonParser.parseString(Files.readString(config.resolve("mythical.json"))).getAsJsonObject();
+        definition = SmokeClient.baseDefinition();
         definition.addProperty("offsetX", 0);
         definition.addProperty("offsetY", 0);
         Files.writeString(baseFile, definition.toString());
@@ -86,7 +86,7 @@ final class OffsetSmoke extends Screen {
             if (frames <= 105) {
                 slots.show(context, frames > 75 ? tall : shifted, 70, 180);
             } else {
-                context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.3 / 整体 XY 偏移", width / 2, 20, 0xffffff);
+                context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.4 / 整体 XY 偏移", width / 2, 20, 0xffffff);
                 context.drawCenteredTextWithShadow(textRenderer, "相同悬停高度；右侧向右 24、向上 20 个界面像素", width / 2, 42, 0xa8c5dd);
                 context.drawTextWithShadow(textRenderer, "offsetX: 0   offsetY: 0", 28, 100, 0xffffff);
                 context.drawTextWithShadow(textRenderer, "offsetX: 24   offsetY: -20", 332, 100, 0xffffff);
@@ -127,7 +127,7 @@ final class OffsetSmoke extends Screen {
             }
             if (saved.get()) {
                 cleanup();
-                check(TooltipStudioClient.CONFIG.count() == 9, "offset smoke restores original style files");
+                check(TooltipStudioClient.CONFIG.count() == 1, "offset smoke restores original style files");
                 after.run();
             }
             if (++frames > 1200) throw new IllegalStateException("Offset screenshot timed out");

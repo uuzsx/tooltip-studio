@@ -1,6 +1,6 @@
 {
-  "style": "mythical",
-  "priority": 200,
+  "style": "monumenta/forest",
+  "priority": 300,
   "nbt": {
     "Monumenta.Location": "forest"
   }

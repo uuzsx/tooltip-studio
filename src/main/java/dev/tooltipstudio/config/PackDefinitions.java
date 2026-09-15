@@ -53,9 +53,10 @@ public record PackDefinitions(Map<String, Style> styles, List<RuleFile> ruleFile
         // Stable priority sorting later gives local rules precedence on ties, then pack file path and array order.
         for (Settings.Rule rule : local.rules()) merged.add(new SourcedRule("config.json", rule));
         for (RuleFile file : ruleFiles) {
-            try { Settings.validateRules(file.rules(), availableStyles); }
+            List<Settings.Rule> rules = LegacyPresets.rules(file.rules(), availableStyles);
+            try { Settings.validateRules(rules, availableStyles); }
             catch (RuntimeException e) { throw invalid(file.source(), e); }
-            for (Settings.Rule rule : file.rules()) merged.add(new SourcedRule(file.source(), rule));
+            for (Settings.Rule rule : rules) merged.add(new SourcedRule(file.source(), rule));
         }
         Style.require(merged.size() <= 4096, "local and resource-pack rules combined must not exceed 4096");
         return List.copyOf(merged);

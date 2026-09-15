@@ -24,14 +24,16 @@ class ConfigurationTest {
 
     @Test void allBundledStylesAndRulesAreValid() throws Exception {
         var names = resource("styles.json", String[].class);
-        assertEquals(9, names.length);
+        assertArrayEquals(new String[]{"default"}, names);
         for (String name : names) {
             var style = resource("styles/" + name + ".json", Style.class);
             style.validate();
             assertEquals(0, style.offsetX(), "old JSON defaults to no horizontal offset");
             assertEquals(0, style.offsetY(), "old JSON defaults to no vertical offset");
         }
-        resource("config.json", Settings.class).validate(new HashSet<>(List.of(names)));
+        var settings = resource("config.json", Settings.class);
+        settings.validate(new HashSet<>(List.of(names)));
+        assertEquals("default", settings.defaultStyle());
     }
 
     @Test void fixedCapsRemainPixelExactAcrossWidths() {
@@ -54,7 +56,7 @@ class ConfigurationTest {
     }
 
     @Test void malformedAtlasAndDividerAreRejected() throws Exception {
-        var style = resource("styles/rare.json", Style.class);
+        var style = resource("styles/default.json", Style.class);
         var json = gson.toJsonTree(style).getAsJsonObject();
         json.getAsJsonObject("background").addProperty("u", 128);
         assertThrows(IllegalArgumentException.class, () -> gson.fromJson(json, Style.class).validate());
@@ -72,7 +74,7 @@ class ConfigurationTest {
     }
 
     @Test void optionalTooltipOffsetsLoadIndependentlyAndRejectExtremeValues() throws Exception {
-        var json = gson.toJsonTree(resource("styles/rare.json", Style.class)).getAsJsonObject();
+        var json = gson.toJsonTree(resource("styles/default.json", Style.class)).getAsJsonObject();
         json.remove("offsetX");
         json.addProperty("offsetY", -12);
         var up = gson.fromJson(json, Style.class);

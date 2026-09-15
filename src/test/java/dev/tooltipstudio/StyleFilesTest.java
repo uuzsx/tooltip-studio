@@ -19,7 +19,7 @@ class StyleFilesTest {
     private void write(String relative, int width) throws Exception {
         Path path = directory.resolve(relative);
         Files.createDirectories(path.getParent());
-        var json = JsonParser.parseString(Files.readString(Path.of("src/main/resources/assets/tooltipstudio/defaults/styles/rare.json"))).getAsJsonObject();
+        var json = JsonParser.parseString(Files.readString(Path.of("src/main/resources/assets/tooltipstudio/defaults/styles/default.json"))).getAsJsonObject();
         json.addProperty("minWidth", width);
         Files.writeString(path, json.toString());
     }

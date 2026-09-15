@@ -98,7 +98,7 @@ class NbtMatcherTest {
     @Test void shippedExampleConfigAndStandaloneRuleAreValid() throws Exception {
         Gson gson = new Gson();
         Settings config = gson.fromJson(Files.readString(Path.of("examples/nbt-matching/config.json")), Settings.class);
-        config.validate(Set.of("rare", "uncommon", "epic", "legendary", "mythical"));
+        config.validate(Set.of("default", "monumenta/forest"));
         for (Settings.Rule rule : config.rules()) NbtMatcher.compile(rule.nbt());
         Settings.Rule standalone = gson.fromJson(Files.readString(Path.of("examples/nbt-matching/forest-rule.json")), Settings.Rule.class);
         assertEquals(config.rules().get(0), standalone);

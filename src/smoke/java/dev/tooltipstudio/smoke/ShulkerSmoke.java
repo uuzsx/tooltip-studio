@@ -37,7 +37,7 @@ final class ShulkerSmoke {
         box.getOrCreateNbt().putString("TooltipStyle", "smoke_shulker_offset");
         offsetStyle = client.runDirectory.toPath().resolve("config/tooltipstudio/styles/smoke_shulker_offset.json");
         try {
-            var json = JsonParser.parseString(Files.readString(offsetStyle.resolveSibling("legendary.json"))).getAsJsonObject();
+            var json = SmokeClient.baseDefinition();
             json.addProperty("offsetX", 16);
             json.addProperty("offsetY", -12);
             Files.writeString(offsetStyle, json.toString());
@@ -78,7 +78,7 @@ final class ShulkerSmoke {
 
             ShulkerBoxTooltip.config.preview.position = PreviewPosition.INSIDE;
             lockKey.setBoolean(null, true);
-            context.drawTextWithShadow(font, "LOCK: hover changes, legendary box stays", 15, 220, 0xffffff);
+            context.drawTextWithShadow(font, "LOCK: hover changes, box keeps its offset", 15, 220, 0xffffff);
             lock.showSlot(context, 0, box, 10, 265);
             lock.showSlot(context, 1, other, 200, 280);
             var parent = TooltipRenderScope.enter(other, lock);
@@ -92,7 +92,7 @@ final class ShulkerSmoke {
             } finally { TooltipRenderScope.restore(parent); }
 
             lockKey.setBoolean(null, false);
-            context.drawTextWithShadow(font, "RELEASE: diamond uses its own rare style", 325, 220, 0xffffff);
+            context.drawTextWithShadow(font, "RELEASE: diamond uses its default base style", 325, 220, 0xffffff);
             lock.showSlot(context, 1, other, 320, 265);
             var released = TooltipRenderScope.enter(other, lock);
             try {

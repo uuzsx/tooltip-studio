@@ -1,3 +1,17 @@
+# 1.4 默认基础款与旧素材移除验证
+
+- 验证日期：2026-09-15；Minecraft 1.20.4、Windows、JDK 17、Gradle 8.6。
+- 33 项 JUnit 测试通过，覆盖唯一默认预设、配置校验、旧预设名称回退及自定义名称保留；原有 NBT、资源包、分类路径与偏移测试继续通过。
+- `clean build runSmoke -PsmokeRunDir=run-smoke-base-only` 在全新目录、Loader 0.15.11 下通过；`build runSmoke -PcompatShulker -Ploader_version=0.19.5` 在保留 1.3 配置及 9 份旧预设 JSON 的目录通过。两次均输出 `SMOKE COMPLETE`。
+- 新安装仅加载 default；旧配置仍写着 rare 默认值与 legendary/epic/rare/uncommon 规则，但运行时只加载新基础款。旧文件不被改写或删除。
+- 实际客户端验证：无需本地 default.json 也可使用内置基础款；同名本地 JSON 可以覆盖参数，删除覆盖文件后恢复内置定义。测试结束恢复原配置。
+- 真实 ZIP 资源包验证默认 PNG、monumenta/forest 分类样式与 offsetY=-12；资源重载、覆盖排序、规则优先级、停用移除与错误后恢复全部通过。
+- 使用新基础 PNG 重跑整框位移截图比较，正负偏移与超长正文缩放后移动均为 0 差异像素；边缘限制、名称换行、分割线、收纳袋和 NBT 匹配回归通过。
+- Shulker Box Tooltip 4.1.0 + Cloth Config 13.0.121 环境完成框内/框外预览、锁定/解锁、偏移、嵌套上下文与异常恢复检查。已查看默认款演示与潜影盒兼容截图。
+- 发行 JAR 只含 default.json 与 default.png；示例包和自定义示例使用同一张 PNG。PNG 与用户提供的 Default.png 字节一致，基础 JSON 除 texture 引用外与 defalut.json 相同。当前源码已移除旧预设、旧 PNG 与图集生成脚本；仅保留兼容识别名称和指纹。
+
+范围限制：未验证朋友服务器完整模组/资源包组合、其他 Minecraft 版本或长期多人会话。修改过的旧样式若仍引用已移除的 PNG，需要用户提供替代图片及对应参数。
+
 # 1.3 整体 XY 偏移验证
 
 - 验证日期：2026-09-15；Minecraft 1.20.4、Windows、JDK 17、Gradle 8.6。

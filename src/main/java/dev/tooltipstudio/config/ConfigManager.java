@@ -88,7 +88,21 @@ public final class ConfigManager {
             Settings settings = read(directory.resolve("config.json"), Settings.class);
             PackDefinitions packs = PackDefinitions.load(resources);
             Map<String, Style> definitions = StyleFiles.loadLocal(directory.resolve("styles"), packs.styles().keySet());
+            // Ignore only unchanged old preset parameters whose bundled texture was retired.
+            // Edited styles and textures supplied again by a resource pack remain the user's choice.
+            definitions.entrySet().removeIf(entry -> LegacyPresets.unchanged(entry.getKey(), entry.getValue())
+                    && resources.getResource(new Identifier(entry.getValue().texture())).isEmpty());
             definitions.putAll(packs.styles());
+            // The base style also exists for upgrades without creating or replacing any user files.
+            if (!definitions.containsKey("default")) {
+                try (Reader reader = new java.io.InputStreamReader(bundled("styles/default.json"), StandardCharsets.UTF_8)) {
+                    Style base = GSON.fromJson(reader, Style.class);
+                    Style.require(base != null, "bundled default style cannot be null");
+                    base.validate();
+                    definitions.put("default", base);
+                }
+            }
+            settings = LegacyPresets.settings(settings, definitions.keySet());
             settings.validate(definitions.keySet());
             List<CompiledRule> rules = packs.mergeRules(settings, definitions.keySet()).stream()
                     .sorted(Comparator.comparingInt((PackDefinitions.SourcedRule r) -> r.rule().priority()).reversed())
@@ -174,7 +188,7 @@ public final class ConfigManager {
         if (snapshot == null || !snapshot.settings.enabled() || stack.isEmpty()) return null;
         String key = snapshot.settings.nbtStyleKey();
         if (!key.isEmpty() && stack.hasNbt() && stack.getNbt().contains(key, NbtElement.STRING_TYPE)) {
-            LoadedStyle override = snapshot.styles.get(stack.getNbt().getString(key));
+            LoadedStyle override = snapshot.styles.get(LegacyPresets.resolve(stack.getNbt().getString(key), snapshot.styles.keySet()));
             if (override != null) return override;
         }
         String id = Registries.ITEM.getId(stack.getItem()).toString();

@@ -4,17 +4,23 @@
     {
       "style": "monumenta/forest",
       "priority": 300,
-      "nbt": { "Monumenta.Location": "forest" }
+      "nbt": {
+        "Monumenta.Location": "forest"
+      }
     },
     {
-      "style": "pack_wood",
+      "style": "monumenta/forest",
       "priority": 200,
-      "tags": ["minecraft:planks"]
+      "tags": [
+        "minecraft:planks"
+      ]
     },
     {
-      "style": "pack_wood",
+      "style": "monumenta/forest",
       "priority": 190,
-      "items": ["minecraft:stick"]
+      "items": [
+        "minecraft:stick"
+      ]
     }
   ]
 }

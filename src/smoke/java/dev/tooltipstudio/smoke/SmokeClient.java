@@ -37,21 +37,22 @@ public final class SmokeClient implements ClientModInitializer {
                     if (Boolean.getBoolean("tooltipstudio.poster")) {
                         client.options.getGuiScale().setValue(2);
                         client.onResolutionChanged();
-                        client.setScreen(new PosterDemo());
+                        BaseStyleSmoke.start(client, client::scheduleStop);
                         return;
                     }
-                    check(TooltipStudioClient.CONFIG.count() == 9, "nine bundled styles loaded");
+                    check(TooltipStudioClient.CONFIG.count() == 1, "only the default base style is bundled");
                     var sword = new ItemStack(Items.NETHERITE_SWORD);
-                    check(TooltipStudioClient.CONFIG.select(sword).style().texture().contains("legendary"), "item ID rule");
-                    sword.getOrCreateNbt().putString("TooltipStyle", "cat_bell");
-                    check(TooltipStudioClient.CONFIG.select(sword).style().texture().contains("cat_bell"), "NBT override");
+                    check(TooltipStudioClient.CONFIG.select(sword).style().texture().contains("default"), "ordinary item uses the only bundled style");
+                    sword.getOrCreateNbt().putString("TooltipStyle", "default");
+                    check(TooltipStudioClient.CONFIG.select(sword).style().texture().contains("default"), "NBT override");
                     testReload(client);
                     testNestedStyles(client);
                     client.options.getGuiScale().setValue(2);
                     client.onResolutionChanged();
                     client.reloadResources().thenRun(() -> {
-                        check(TooltipStudioClient.CONFIG.count() == 9, "resource reload retained all styles");
-                        PackSmoke.start(client, () -> OffsetSmoke.start(client, () -> NbtSmoke.start(client, new Gallery())));
+                        check(TooltipStudioClient.CONFIG.count() == 1, "resource reload retained all styles");
+                        BaseStyleSmoke.start(client, () -> PackSmoke.start(client,
+                                () -> OffsetSmoke.start(client, () -> NbtSmoke.start(client, new Gallery()))));
                     }).exceptionally(failure -> {
                         failure.printStackTrace();
                         client.scheduleStop();
@@ -71,24 +72,31 @@ public final class SmokeClient implements ClientModInitializer {
         System.out.println("SMOKE PASS: " + name);
     }
 
+    static com.google.gson.JsonObject baseDefinition() {
+        try (var reader = new java.io.InputStreamReader(SmokeClient.class.getResourceAsStream(
+                "/assets/tooltipstudio/defaults/styles/default.json"), StandardCharsets.UTF_8)) {
+            return JsonParser.parseReader(reader).getAsJsonObject();
+        } catch (Exception e) { throw new IllegalStateException(e); }
+    }
+
     private void testReload(MinecraftClient client) throws Exception {
         Path config = client.runDirectory.toPath().resolve("config/tooltipstudio");
         byte[] good = Files.readAllBytes(config.resolve("config.json"));
         try {
             Files.writeString(config.resolve("config.json"), "{broken-json", StandardCharsets.UTF_8);
             check(!TooltipStudioClient.CONFIG.reload(client.getResourceManager()), "bad JSON rejected");
-            check(TooltipStudioClient.CONFIG.count() == 9, "last working configuration retained");
+            check(TooltipStudioClient.CONFIG.count() == 1, "last working configuration retained");
         } finally { Files.write(config.resolve("config.json"), good); }
         check(TooltipStudioClient.CONFIG.reload(client.getResourceManager()), "reload recovered");
-        try (var input = getClass().getResourceAsStream("/assets/tooltipstudio/textures/styles/rare.png")) {
+        try (var input = getClass().getResourceAsStream("/assets/tooltipstudio/textures/styles/default.png")) {
             Files.copy(input, config.resolve("textures/custom.png"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         }
         Path custom = config.resolve("styles/custom.json");
-        var json = JsonParser.parseString(Files.readString(config.resolve("styles/rare.json"))).getAsJsonObject();
+        var json = baseDefinition();
         json.addProperty("texture", "local:custom.png");
         Files.writeString(custom, json.toString());
         try {
-            check(TooltipStudioClient.CONFIG.reload(client.getResourceManager()) && TooltipStudioClient.CONFIG.count() == 10,
+            check(TooltipStudioClient.CONFIG.reload(client.getResourceManager()) && TooltipStudioClient.CONFIG.count() == 2,
                     "custom style and local PNG loaded");
             var item = new ItemStack(Items.DIAMOND);
             item.getOrCreateNbt().putString("TooltipStyle", "custom");
@@ -106,7 +114,7 @@ public final class SmokeClient implements ClientModInitializer {
         try {
             Files.createDirectories(first.getParent());
             Files.createDirectories(second.getParent());
-            var style = JsonParser.parseString(Files.readString(config.resolve("styles/rare.json"))).getAsJsonObject();
+            var style = baseDefinition();
             style.addProperty("texture", "local:custom.png");
             style.addProperty("minWidth", 131);
             Files.writeString(first, style.toString());
@@ -119,7 +127,7 @@ public final class SmokeClient implements ClientModInitializer {
                     """));
             Files.writeString(settings, json.toString());
             check(TooltipStudioClient.CONFIG.reload(client.getResourceManager()), "nested local style reload");
-            check(TooltipStudioClient.CONFIG.count() == 11, "same basename in different local folders is distinct");
+            check(TooltipStudioClient.CONFIG.count() == 3, "same basename in different local folders is distinct");
             check(TooltipStudioClient.CONFIG.select(new ItemStack(Items.STICK)).style().minWidth() == 131,
                     "local rule selects full style path");
             check(TooltipStudioClient.CONFIG.select(new ItemStack(Items.DIAMOND)).style().minWidth() == 141,
@@ -136,7 +144,7 @@ public final class SmokeClient implements ClientModInitializer {
             Files.deleteIfExists(first);
             Files.deleteIfExists(second);
         }
-        check(TooltipStudioClient.CONFIG.reload(client.getResourceManager()) && TooltipStudioClient.CONFIG.count() == 9,
+        check(TooltipStudioClient.CONFIG.reload(client.getResourceManager()) && TooltipStudioClient.CONFIG.count() == 1,
                 "nested local styles are removed after restoring files and references");
     }
 
@@ -152,15 +160,15 @@ public final class SmokeClient implements ClientModInitializer {
     }
 
     private static final class Gallery extends Screen {
-        private final String[] styles = {"uncommon", "rare", "epic", "legendary", "mythical", "cat_bell", "red_book", "tslat_sword", "dream_dyeing_crystal_fragment"};
-        private final ItemStack[] samples = new ItemStack[9];
+        private final String[] styles = {"default"};
+        private final ItemStack[] samples = new ItemStack[styles.length];
         private int frames;
         private final AtomicInteger saved = new AtomicInteger();
         private SlotHarness slots;
         private ShulkerSmoke shulker;
         private Gallery() {
             super(Text.literal("Tooltip Studio smoke test"));
-            for (int i = 0; i < 9; i++) samples[i] = sample(styles[i], "Centered item name", "A configurable lore line.", "One atlas per style.");
+            for (int i = 0; i < styles.length; i++) samples[i] = sample(styles[i], "Centered item name", "A configurable lore line.", "One atlas per style.");
         }
         @Override protected void init() {
             slots = new SlotHarness();
@@ -171,7 +179,7 @@ public final class SmokeClient implements ClientModInitializer {
             context.fill(0, 0, width, height, 0xff17202e);
             context.drawCenteredTextWithShadow(textRenderer, "TOOLTIP STUDIO / Fabric 1.20.4", width / 2, 8, 0xffffff);
             if (frames < 45) {
-                for (int i = 0; i < 9; i++) {
+                for (int i = 0; i < styles.length; i++) {
                     int x = 14 + (i % 3) * (width / 3);
                     int y = 46 + (i / 3) * 127;
                     context.drawTextWithShadow(textRenderer, styles[i], x, y - 15, 0xa8b8d0);
@@ -180,11 +188,11 @@ public final class SmokeClient implements ClientModInitializer {
                 }
             } else if (frames < 90) {
                 context.drawTextWithShadow(textRenderer, "Long title, wrapping, fixed caps, title-only and screen edges", 10, 30, 0xa8b8d0);
-                context.drawItemTooltip(textRenderer, sample("rare", "Name"), 4, 65);
-                slots.show(context, sample("legendary", "A very long item name that wraps across several visible lines and stays centered",
+                context.drawItemTooltip(textRenderer, sample("default", "Name"), 4, 65);
+                slots.show(context, sample("default", "A very long item name that wraps across several visible lines and stays centered",
                         "This is a long lore line. It wraps within the configured maximum width while preserving the item tooltip layout.",
                         "Second lore line."), width - 4, 130);
-                context.drawItemTooltip(textRenderer, sample("epic", "屏幕边缘测试", "物品名称居中", "分割线仅拉伸中间部分"), width - 4, height - 4);
+                context.drawItemTooltip(textRenderer, sample("default", "屏幕边缘测试", "物品名称居中", "分割线仅拉伸中间部分"), width - 4, height - 4);
                 ItemStack bundle = new ItemStack(Items.BUNDLE);
                 NbtList items = new NbtList();
                 items.add(new ItemStack(Items.DIAMOND, 8).writeNbt(new net.minecraft.nbt.NbtCompound()));
@@ -193,8 +201,8 @@ public final class SmokeClient implements ClientModInitializer {
             } else if (frames < 125 || shulker == null) {
                 String[] lore = new String[60];
                 for (int i = 0; i < lore.length; i++) lore[i] = "Lore line " + (i + 1);
-                slots.show(context, sample("mythical", "Tall tooltip", lore), 15, height - 10);
-                slots.show(context, sample("rare", "Centered wrapped title: a long name that spans multiple lines",
+                slots.show(context, sample("default", "Tall tooltip", lore), 15, height - 10);
+                slots.show(context, sample("default", "Centered wrapped title: a long name that spans multiple lines",
                         "All 60 lines fit on screen.", "The entire tall tooltip scales together."), width - 5, 180);
             } else {
                 shulker.render(context, textRenderer);

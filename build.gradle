@@ -83,7 +83,7 @@ loom {
             source sourceSets.smoke
             vmArg '-Dtooltipstudio.smoke=true'
             programArgs '--width', '1280', '--height', '900'
-            runDir 'run-smoke'
+            runDir project.findProperty('smokeRunDir') ?: 'run-smoke'
         }
     }
 }
