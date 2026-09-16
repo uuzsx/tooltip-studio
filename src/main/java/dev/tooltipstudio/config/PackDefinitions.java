@@ -42,7 +42,7 @@ public record PackDefinitions(Map<String, Style> styles, Map<String, DecorationD
                 String name = StyleFiles.id(entry.getKey().getPath().substring("decorations/".length()));
                 DecorationDefinition definition = read(entry.getValue(), DecorationDefinition.class);
                 definition.validate();
-                Style.require(!definition.texture().startsWith("local:"), "resource-pack decorations must use a resource texture ID, not local:");
+                Style.require(definition.isText() || !definition.texture().startsWith("local:"), "resource-pack decorations must use a resource texture ID, not local:");
                 decorations.put(name, definition);
             } catch (IOException | RuntimeException e) { throw invalid(source, e); }
         }

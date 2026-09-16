@@ -1,3 +1,11 @@
+# 1.6
+
+- 修复整框横向偏移：offsetX 默认以鼠标为参照，正值远离、负值靠近，tooltip 切换左右时自动反向，使两侧间距一致；可用 offsetXMode=screen 保留旧的固定屏幕方向。offsetY 行为不变。
+- 装饰新增 SEPARATOR_LEFT、SEPARATOR_CENTER、SEPARATOR_RIGHT 锚点，按实际分割线端点和中线定位，随名称换行移动；没有显示分割线时隐藏对应装饰。
+- 新增 type=text 的纯文字装饰，支持自定义文字、#RRGGBB 颜色、粗体、斜体、阴影与换行；无需 PNG。适用于独立装饰和样式内 decorations。
+- 图片与文字装饰均支持 x_scale / y_scale 独立缩放，默认 1，范围 0.0625..16。锚点按缩放后的尺寸计算，x/y 偏移不被装饰自身缩放；屏幕边缘限制包含文字和缩放后的图片。
+- 新增可选资源包与游戏内演示，保留默认基础款、旧匹配机制、资源包分类路径与潜影盒兼容。
+
 # 1.5
 
 - 新增独立 decorations 定义与 decorationRules，匹配后在已选 tooltip 上额外绘制图片，不替换背景、边框、分割线或文字布局；适用于默认款、本地样式、资源包样式及 TooltipStyle 覆盖。

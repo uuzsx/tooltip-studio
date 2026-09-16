@@ -6,6 +6,34 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class TooltipPlacementTest {
+    @Test void cursorRelativeOffsetsHaveEqualGapsOnBothSides() {
+        int screen = 640, size = 180, mouseRightSide = 70, mouseLeftSide = 570;
+        for (int offset : new int[]{-8, 0, 12, 24}) {
+            int right = TooltipPlacement.horizontal(mouseRightSide + 12, size, screen, mouseRightSide, offset, true);
+            int left = TooltipPlacement.horizontal(mouseLeftSide - 12 - size, size, screen, mouseLeftSide, offset, true);
+            assertEquals(12 + offset, right - mouseRightSide);
+            assertEquals(12 + offset, mouseLeftSide - (left + size));
+        }
+    }
+
+    @Test void screenModeRetainsLegacyDirectionAndZeroOffsetIsUnchanged() {
+        for (int mouse : new int[]{70, 570}) {
+            int preferred = mouse == 70 ? mouse + 12 : mouse - 12 - 180;
+            for (int offset : new int[]{-24, 0, 24})
+                assertEquals(TooltipPlacement.offset(preferred, 180, 640, offset),
+                        TooltipPlacement.horizontal(preferred, 180, 640, mouse, offset, false));
+            assertEquals(TooltipPlacement.offset(preferred, 180, 640, 0),
+                    TooltipPlacement.horizontal(preferred, 180, 640, mouse, 0, true));
+        }
+    }
+
+    @Test void cursorSideComesFromOriginalPlacementEvenWhenClampingStraddlesMouse() {
+        // This tooltip is clamped to x=4 even though its natural side is left.
+        assertEquals(24, TooltipPlacement.horizontal(4, 500, 640, 200, -20, true));
+        assertEquals(4, TooltipPlacement.horizontal(4, 500, 640, 200, 20, true));
+        assertEquals(4, TooltipPlacement.horizontal(4, 632, 640, 200, -4096, true));
+    }
+
     @Test void zeroOffsetPreservesOldPlacementIncludingOffscreenPreferredPositions() {
         for (int screen : new int[]{320, 640, 1920}) {
             for (int size : new int[]{80, screen - 8}) {

@@ -1,4 +1,4 @@
-# Tooltip Studio 1.5 资源包示例
+# Tooltip Studio 1.6 资源包示例
 
 适用于 Fabric / Minecraft 1.20.4。把 ZIP 放入 resourcepacks 并在游戏中启用，ZIP 根目录直接包含 pack.mcmeta（pack_format=22）。
 本包只使用与模组相同的默认 PNG，没有极光素材。示例样式 monumenta/forest 保留基础款外观，设置 offsetY=-12，用位置变化演示规则匹配。
@@ -35,7 +35,7 @@ assets/tooltipstudio/textures/styles/default.png
 
 ## 偏移、覆盖与重载
 
-在样式最外层添加 offsetX / offsetY。X 正右负左，Y 正下负上，各自默认 0，取值 -4096..4096，单位 GUI 像素。整框一起移动，屏幕四边保留 4 GUI 像素，到边缘时限制实际位移。
+在样式最外层添加 offsetX / offsetY。X 默认正值远离鼠标、负值靠近，左右自动反向；offsetXMode=screen 时固定正右负左。Y 正下负上，各自默认 0，取值 -4096..4096，单位 GUI 像素。整框一起移动，屏幕四边保留 4 GUI 像素，到边缘时限制实际位移。
 本例 offsetY=-12，普通物品匹配后向上移动 12，默认样式不偏移。
 
 资源包同名样式覆盖本地；多个包同路径文件以游戏资源包优先级选择。相同路径的规则文件整份替换，不同文件合并后按 priority 匹配；同 priority 本地规则优先，再按资源文件路径和数组顺序。

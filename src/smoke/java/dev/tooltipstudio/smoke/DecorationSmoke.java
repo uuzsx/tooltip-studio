@@ -200,7 +200,7 @@ final class DecorationSmoke extends Screen {
                 if (frames == 90) { verifyBounds(); offset(0, 0); }
                 if (frames == 105) { verifyBounds(); phase = 1; testPacks(); }
             } else {
-                context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.5 / 按条件叠加独立装饰", width / 2, 22, 0xffe7e0cf);
+                context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.6 / 按条件叠加独立装饰", width / 2, 22, 0xffe7e0cf);
                 context.drawCenteredTextWithShadow(textRenderer, "同一张剑贴图可用于四角，也可叠加到其他 tooltip 样式", width / 2, 44, 0xffb8c6cb);
                 context.drawTextWithShadow(textRenderer, "未命中条件：保持原样", 24, 88, 0xffb8c6cb);
                 context.drawTextWithShadow(textRenderer, "命中 forest：左上角加小剑", 330, 88, 0xffb8c6cb);

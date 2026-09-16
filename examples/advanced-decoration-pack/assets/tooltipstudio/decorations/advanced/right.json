@@ -1,0 +1,18 @@
+{
+  "type": "texture",
+  "texture": "tooltipstudio:textures/decorations/sword.png",
+  "textureWidth": 128,
+  "textureHeight": 128,
+  "region": {
+    "u": 0,
+    "v": 0,
+    "width": 16,
+    "height": 16
+  },
+  "anchor": "SEPARATOR_RIGHT",
+  "x": 6,
+  "y": 0,
+  "foreground": true,
+  "x_scale": 1.5,
+  "y_scale": 0.75
+}

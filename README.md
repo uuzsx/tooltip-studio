@@ -2,14 +2,14 @@
 
 ![Tooltip Studio 图标](src/main/resources/assets/tooltipstudio/icon.png)
 
-通过配置或资源包中的 JSON 和单张贴图自定义物品提示框，支持名称居中、装饰分割线及物品与 NBT 匹配。
+通过 JSON 或资源包自定义物品提示框，支持名称居中、分割线、条件匹配及图片和文字装饰。
 
-作者：**幼幼紫、千村**。版本 **1.5**，纯客户端，仅支持 **Minecraft 1.20.4**。
+作者：**幼幼紫、千村**。版本 **1.6**，纯客户端，仅支持 **Minecraft 1.20.4**。
 项目采用 [MIT 协议](LICENSE)，仓库：[uuzsx/tooltip-studio](https://github.com/uuzsx/tooltip-studio)。
 
 ## 安装与默认外观
 
-使用 Minecraft 1.20.4、Fabric Loader 0.15.11 或更新版，以及适用于 1.20.4 的 Fabric API。移除旧版 Tooltip Studio JAR，放入 `tooltip-studio-1.5+1.20.4.jar`；服务端无需安装。
+使用 Minecraft 1.20.4、Fabric Loader 0.15.11 或更新版，以及适用于 1.20.4 的 Fabric API。移除旧版 Tooltip Studio JAR，放入 `tooltip-studio-1.6+1.20.4.jar`；服务端无需安装。
 
 **本版只内置 default 一套基础样式。** 原样使用用户朋友提供的 Default.png 和 defalut.json，JSON 仅将 texture 改为 `tooltipstudio:textures/styles/default.png`。原极光的 9 套样式、贴图及图集生成脚本已移除，示例包也不包含旧素材。
 
@@ -40,8 +40,8 @@ config/tooltipstudio/
 
 - 物品名称居中，名称换行后每行仍居中，正文左对齐；保留原有文字颜色、附魔与 lore。
 - 标题与正文间显示分割线，只有标题时不显示。分割线左右两端固定，仅中段拉伸。
-- 基础样式的背景、九宫格边框、分割线和自带装饰来自同一张 PNG；装饰支持九个锚点及绘制前后层。
-- 独立装饰可用自己的 PNG 和匹配规则，叠加到任意已选样式上；支持多项同时命中、四角定位，不替换基础款外观。
+- 基础样式的背景、九宫格边框、分割线和自带装饰来自同一张 PNG；装饰支持面板九个锚点、分割线三个锚点及绘制前后层。
+- 独立装饰可用自己的 PNG 或自定义文字，支持 x_scale / y_scale；通过匹配规则，叠加到任意已选样式上；支持多项同时命中、四角定位，不替换基础款外观。
 - 支持物品 ID/通配符、物品 tag、稀有度、NBT 路径和值，以及单件物品 TooltipStyle 覆盖。
 - 本地与资源包均可提供样式 JSON，支持多层分类目录、优先级覆盖及热重载。
 - offsetX / offsetY 控制整框偏移。长文字自动换行，超大提示框整体缩小；屏幕边缘限制包含外部装饰。
@@ -133,14 +133,16 @@ style、defaultStyle 和 TooltipStyle 填相对于 styles/ 的路径，去掉 .j
 ```
 
 这是已有 config.json 的字段片段。对应装饰放在 `config/tooltipstudio/decorations/sword/top_left.json`，或资源包的 `assets/tooltipstudio/decorations/sword/top_left.json`。
-每份装饰 JSON 指定自己的 texture、textureWidth、textureHeight、region、anchor、x、y、foreground，不需要复制基础样式。装饰 ID 使用相对于 decorations/ 的分类路径，与 styles/ 中的同名 ID 独立。
+图片装饰 JSON 指定自己的 texture、textureWidth、textureHeight、region、anchor、x、y、foreground；文字装饰使用 type=text 与 text，无需 PNG，不需要复制基础样式。装饰 ID 使用相对于 decorations/ 的分类路径，与 styles/ 中的同名 ID 独立。
 本地 PNG 放入 config/tooltipstudio/textures/ 并使用 local: 引用；资源包使用资源 ID。原样式内的 decorations 继续使用原图集并正常绘制。
 
 多条命中可叠加，同一个装饰 ID 只画一次；同一绘制层内，高 priority 在上方，同 priority 本地规则优先。最多同时叠加 64 个不同装饰，超过时按优先级取前 64 个。
-TOP_LEFT、TOP_RIGHT、BOTTOM_LEFT、BOTTOM_RIGHT 支持四角，也支持边中点和中心；x/y 调整装饰相对位置。整框移动、缩放和屏幕边缘限制均包含独立装饰。
+TOP_LEFT、TOP_RIGHT、BOTTOM_LEFT、BOTTOM_RIGHT 支持四角，也支持边中点、中心和分割线左/中/右；x/y 调整装饰相对位置。整框移动、缩放和屏幕边缘限制均包含独立装饰。
 
-可直接启用 `tooltip-studio-decoration-pack-1.5+1.20.4.zip`：云杉木门左上角出现小剑，NBT `Monumenta.Location=forest` 同样匹配，`TooltipDecorations=all_corners` 演示四角。该包不包含基础样式 JSON，也不会修改本地设置。
+可直接启用 `tooltip-studio-decoration-pack-1.6+1.20.4.zip`：云杉木门左上角出现小剑，NBT `Monumenta.Location=forest` 同样匹配，`TooltipDecorations=all_corners` 演示四角。该包不包含基础样式 JSON，也不会修改本地设置。
 完整参数、四角表格、本地安装与测试命令见 [独立装饰说明](examples/independent-decorations/README.md)。剑贴图原样来自用户提供的 test.png，仅在可选示例中分发，默认 JAR 不会自动添加装饰。
+
+1.6 新增的 [锚点、文字与缩放示例](examples/advanced-decoration-pack/README.md) 提供完整 JSON 和可直接启用的资源包。图片和文字都可用 `x_scale` / `y_scale`（默认 1，范围 0.0625..16）。分割线锚点为 `SEPARATOR_LEFT`、`SEPARATOR_CENTER`、`SEPARATOR_RIGHT`；名称换行时自动跟随，没有分割线时隐藏对应装饰。
 
 ## 自定义一套样式
 
@@ -158,15 +160,17 @@ TOP_LEFT、TOP_RIGHT、BOTTOM_LEFT、BOTTOM_RIGHT 支持四角，也支持边中
 | separator.inset / marginTop / marginBottom | 左右缩进与上下间距；enabled=false 可隐藏 |
 | padding | 正文距面板边缘的距离，不小于对应边框宽度 |
 | minWidth / maxWidth | 正文最小宽度与换行宽度，不含 padding；最大 2048 |
-| decorations | 可为空数组，最多 64 项；每项指定 region、anchor、x、y、foreground |
+| decorations | 可为空数组，最多 64 项；图片使用 region，文字使用 type=text 与 text；均支持 anchor、x/y、foreground、x_scale/y_scale |
 | offsetX / offsetY | 可省略，各自默认 0；整数 -4096..4096，单位 GUI 像素 |
+| offsetXMode | 默认 cursor：X 正值远离鼠标、负值靠近；screen：固定正右负左 |
 
-装饰 anchor 支持 TOP_LEFT、TOP、TOP_RIGHT、LEFT、CENTER、RIGHT、BOTTOM_LEFT、BOTTOM、BOTTOM_RIGHT；x/y 调整装饰位置，foreground=true 在文字后绘制。
+装饰 anchor 支持 TOP_LEFT、TOP、TOP_RIGHT、LEFT、CENTER、RIGHT、BOTTOM_LEFT、BOTTOM、BOTTOM_RIGHT，以及 SEPARATOR_LEFT、SEPARATOR_CENTER、SEPARATOR_RIGHT；x/y 调整装饰位置，foreground=true 在文字后绘制。
 分割线高度采用源区域高度，左右两端保留原宽，中段横向拉伸；超大 tooltip 整体缩小时所有内容一起缩小。
 
 ## 整框偏移与重载
 
-在样式 JSON 最外层，与 texture 同级添加 `"offsetX":0,"offsetY":-12`，整框向上移动 12 个 GUI 像素。X 正右负左，Y 正下负上，未填写保持原位。
+在样式 JSON 最外层，与 texture 同级添加 `"offsetX":0,"offsetY":-12`，整框向上移动 12 个 GUI 像素。Y 正下负上；X 默认正值远离鼠标、负值靠近鼠标，tooltip 在鼠标左侧时自动反向，左右间距一致。未填写偏移保持原位。
+若需要 1.5 的固定屏幕方向，添加 `"offsetXMode":"screen"`，此时 X 正右负左；默认 `"cursor"`。升级后旧样式若有非零 offsetX，会使用新的鼠标相对方向。
 偏移在正常定位、自动换行和缩放之后应用，背景、边框、名称、正文、分割线、装饰与框内预览一起移动。tooltip 整体缩小时偏移值本身不再缩小。
 最终仍保留屏幕边缘 4 GUI 像素，包含外部装饰；已贴边或已占满屏幕时会限制实际移动距离。
 
@@ -181,8 +185,8 @@ TOP_LEFT、TOP_RIGHT、BOTTOM_LEFT、BOTTOM_RIGHT 支持四角，也支持边中
 
 ## 构建与验证
 
-使用 JDK 17 与 Gradle Wrapper：`./gradlew build`（Windows 使用 gradlew.bat）。产物为 build/libs/tooltip-studio-1.5+1.20.4.jar 和 build/resourcepacks/tooltip-studio-example-pack-1.5+1.20.4.zip。
-独立装饰示例为 build/resourcepacks/tooltip-studio-decoration-pack-1.5+1.20.4.zip。
+使用 JDK 17 与 Gradle Wrapper：`./gradlew build`（Windows 使用 gradlew.bat）。产物为 build/libs/tooltip-studio-1.6+1.20.4.jar 和 build/resourcepacks/tooltip-studio-example-pack-1.6+1.20.4.zip。
+独立四角装饰示例为 build/resourcepacks/tooltip-studio-decoration-pack-1.6+1.20.4.zip；分割线、文字和缩放示例为 build/resourcepacks/tooltip-studio-advanced-decoration-pack-1.6+1.20.4.zip。
 `runSmoke` 启动开发测试客户端；`-PsmokeRunDir=run-smoke-base-only` 可使用独立测试目录，`-PcompatShulker` 启用潜影盒兼容测试。
 GitHub Actions 自动运行构建与测试，构建产物保存 14 天。详情见 [验证记录](VERIFICATION.md) 与 [素材说明](THIRD_PARTY_ASSETS.md)。
 

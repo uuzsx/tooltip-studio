@@ -16,7 +16,7 @@ assets/tooltipstudio/icon.png 与示例资源包 pack.png 使用用户提供的 
 
 ## 独立装饰示例
 
-1.5 的可选装饰资源包和本地示例使用用户提供的 test.png，保存为 sword.png，PNG 字节原样保留，素材权属归原作者。
+1.5 起的可选装饰资源包和本地示例（含 1.6 的 advanced-decoration-pack）使用用户提供的 test.png，保存为 sword.png，PNG 字节原样保留，素材权属归原作者。
 整图 128×128，示例 JSON 只选取左上角 16×16 的剑区域；四个角共用同一张 PNG。该图片不内置于模组 JAR，不作为第二套 tooltip 背景或边框。
 
 ## 第三方依赖

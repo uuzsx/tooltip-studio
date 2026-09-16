@@ -64,14 +64,14 @@ public final class StyledTooltipRenderer {
         }
         int width = contentWidth + padding.left() + padding.right();
         int height = y + padding.bottom();
-        int left = 0, top = 0, right = width, bottom = height;
-        List<Style.Decoration> placements = new ArrayList<>(style.decorations());
-        for (var decoration : loaded.decorations()) placements.add(decoration.definition().placement());
-        for (Style.Decoration d : placements) {
-            int dx = Slices.anchorX(d.anchor(), width, d.region().width()) + d.x();
-            int dy = Slices.anchorY(d.anchor(), height, d.region().height()) + d.y();
-            left = Math.min(left, dx); top = Math.min(top, dy);
-            right = Math.max(right, dx + d.region().width()); bottom = Math.max(bottom, dy + d.region().height());
+        var line = separatorY < 0 ? null : new DecorationLayout.Separator(padding.left() + separator.inset(),
+                separatorY, contentWidth - separator.inset() * 2, separator.region().height());
+        var decorations = DecorationRenderer.prepare(loaded, textRenderer, width, height, line);
+        float left = 0, top = 0, right = width, bottom = height;
+        for (var decoration : decorations) {
+            var box = decoration.box();
+            left = Math.min(left, box.x()); top = Math.min(top, box.y());
+            right = Math.max(right, box.x() + box.width()); bottom = Math.max(bottom, box.y() + box.height());
         }
         // A tooltip that cannot fit (e.g. a tall bundle or many lore lines) scales as a whole.
         // Text wrapping handles the normal case. Decorations are included in the screen bounds.
@@ -80,7 +80,7 @@ public final class StyledTooltipRenderer {
         int visualWidth = (int) Math.ceil((right - left) * scale);
         int visualHeight = (int) Math.ceil((bottom - top) * scale);
         var position = HoveredTooltipPositioner.INSTANCE.getPosition(screenWidth, screenHeight, mouseX, mouseY, visualWidth, visualHeight);
-        int px = TooltipPlacement.offset(position.x(), visualWidth, screenWidth, style.offsetX());
+        int px = TooltipPlacement.horizontal(position.x(), visualWidth, screenWidth, mouseX, style.offsetX(), style.cursorRelativeOffset());
         int py = TooltipPlacement.offset(position.y(), visualHeight, screenHeight, style.offsetY());
         var matrices = context.getMatrices();
         float[] color = RenderSystem.getShaderColor().clone();
@@ -94,7 +94,7 @@ public final class StyledTooltipRenderer {
             RenderSystem.defaultBlendFunc();
             sprite(context, loaded, style.background(), 0, 0, width, height);
             frame(context, loaded, width, height);
-            decorations(context, loaded, width, height, false);
+            DecorationRenderer.draw(context, textRenderer, decorations, false);
             if (separatorY >= 0) {
                 Style.Region r = separator.region();
                 int lineWidth = contentWidth - 2 * separator.inset();
@@ -119,7 +119,7 @@ public final class StyledTooltipRenderer {
             context.draw();
             matrices.translate(0, 0, 1);
             RenderSystem.enableBlend();
-            decorations(context, loaded, width, height, true);
+            DecorationRenderer.draw(context, textRenderer, decorations, true);
         } finally {
             context.draw();
             matrices.pop();
@@ -139,20 +139,6 @@ public final class StyledTooltipRenderer {
                 sprite(context, loaded, new Style.Region(f.region().u() + x.source(), f.region().v() + y.source(),
                         x.sourceSize(), y.sourceSize()), x.target(), y.target(), x.targetSize(), y.targetSize());
             }
-    }
-
-    private static void decorations(DrawContext context, LoadedStyle loaded, int width, int height, boolean foreground) {
-        for (Style.Decoration d : loaded.style().decorations()) if (d.foreground() == foreground)
-            sprite(context, loaded, d.region(), Slices.anchorX(d.anchor(), width, d.region().width()) + d.x(),
-                    Slices.anchorY(d.anchor(), height, d.region().height()) + d.y(), d.region().width(), d.region().height());
-        for (var overlay : loaded.decorations()) {
-            var d = overlay.definition();
-            if (d.foreground() == foreground)
-                context.drawTexture(overlay.texture(), Slices.anchorX(d.anchor(), width, d.region().width()) + d.x(),
-                        Slices.anchorY(d.anchor(), height, d.region().height()) + d.y(), d.region().width(), d.region().height(),
-                        (float) d.region().u(), (float) d.region().v(), d.region().width(), d.region().height(),
-                        d.textureWidth(), d.textureHeight());
-        }
     }
 
     private static void sprite(DrawContext context, LoadedStyle loaded, Style.Region region, int x, int y, int width, int height) {

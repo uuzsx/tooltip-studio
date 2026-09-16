@@ -1,6 +1,6 @@
-# Tooltip Studio 1.5：整个 tooltip 的 XY 偏移
+# Tooltip Studio 1.6：整个 tooltip 的 XY 偏移
 
-适用于 Fabric / Minecraft 1.20.4。先移除旧版 JAR，安装 `tooltip-studio-1.5+1.20.4.jar`，同一时间只保留一个版本。自定义样式、分类目录与 NBT 规则仍受支持；本版已移除旧极光预设和 PNG，升级处理见 [基础款说明](../base-style/README.md)。
+适用于 Fabric / Minecraft 1.20.4。先移除旧版 JAR，安装 `tooltip-studio-1.6+1.20.4.jar`，同一时间只保留一个版本。自定义样式、分类目录与 NBT 规则仍受支持；本版已移除旧极光预设和 PNG，升级处理见 [基础款说明](../base-style/README.md)。
 
 ## 往上移动一点
 
@@ -21,9 +21,13 @@
 | --- | --- |
 | 向上 | `"offsetY": -12` |
 | 向下 | `"offsetY": 12` |
-| 向左 | `"offsetX": -16` |
-| 向右 | `"offsetX": 16` |
-| 向右并向上 | `"offsetX": 16, "offsetY": -12` |
+| 远离鼠标，左右间距一致 | `"offsetX": 16` |
+| 靠近鼠标 | `"offsetX": -16` |
+| 远离鼠标并向上 | `"offsetX": 16, "offsetY": -12` |
+| 固定向右（旧版模式） | `"offsetXMode": "screen", "offsetX": 16` |
+| 固定向左（旧版模式） | `"offsetXMode": "screen", "offsetX": -16` |
+
+从 1.6 起，offsetXMode 默认是 cursor：tooltip 在鼠标右侧时正 X 向右，在鼠标左侧时正 X 向左；负值相反。在屏幕空间足够时，同一个值会保持左右相同的鼠标间距。已有非零 offsetX 会采用这个新行为；需要旧方向时显式添加 `"offsetXMode":"screen"`。单个装饰的 x/y 不受此模式影响。
 
 两个参数都可省略，也可只填一个；默认均为 0。取值为 -4096 到 4096 的整数，每套样式分别设置。
 
@@ -43,7 +47,7 @@
 
 ## 现成的资源包示例
 
-本版 `tooltip-studio-example-pack-1.5+1.20.4.zip` 中的 `monumenta/forest` 已设置 `offsetX: 0`、`offsetY: -12`，匹配客户端物品 NBT 的 `Monumenta.Location = forest`。
+本版 `tooltip-studio-example-pack-1.6+1.20.4.zip` 中的 `monumenta/forest` 已设置 `offsetX: 0`、`offsetY: -12`，匹配客户端物品 NBT 的 `Monumenta.Location = forest`。
 内置 `default` 不设置偏移，使用同一张 PNG。可在有权限的 1.20.4 单人测试世界获取两个仅覆盖样式 ID 不同的物品进行比较：
 
 ```mcfunction

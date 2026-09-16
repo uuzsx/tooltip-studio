@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "decorationRules": [
+    {
+      "decorations": [
+        "advanced/left",
+        "advanced/title",
+        "advanced/right"
+      ],
+      "priority": 300,
+      "nbt": {
+        "TooltipDecorations": [
+          "advanced",
+          "separator_only"
+        ]
+      }
+    },
+    {
+      "decorations": [
+        "advanced/footer"
+      ],
+      "priority": 200,
+      "nbt": {
+        "TooltipDecorations": "advanced"
+      }
+    }
+  ]
+}

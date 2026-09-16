@@ -1,19 +1,29 @@
 package dev.tooltipstudio.config;
 
+import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
 /** Atlas regions refer to one PNG; layout and whole-tooltip offsets use GUI pixels. */
 public record Style(String texture, int textureWidth, int textureHeight,
                     Region background, Frame frame, Separator separator,
                     Insets padding, int minWidth, int maxWidth, List<Decoration> decorations,
-                    int offsetX, int offsetY) {
+                    int offsetX, int offsetY, String offsetXMode) {
     public record Region(int u, int v, int width, int height) {}
     public record Insets(int left, int top, int right, int bottom) {}
     public record Frame(Region region, int left, int top, int right, int bottom) {}
     public record Separator(boolean enabled, Region region, int leftCap, int rightCap,
                             int inset, int marginTop, int marginBottom) {}
-    public enum Anchor { TOP_LEFT, TOP, TOP_RIGHT, LEFT, CENTER, RIGHT, BOTTOM_LEFT, BOTTOM, BOTTOM_RIGHT }
-    public record Decoration(Region region, Anchor anchor, int x, int y, boolean foreground) {}
+    public enum Anchor {
+        TOP_LEFT, TOP, TOP_RIGHT, LEFT, CENTER, RIGHT, BOTTOM_LEFT, BOTTOM, BOTTOM_RIGHT,
+        SEPARATOR_LEFT, SEPARATOR_CENTER, SEPARATOR_RIGHT;
+
+        public boolean separator() { return this == SEPARATOR_LEFT || this == SEPARATOR_CENTER || this == SEPARATOR_RIGHT; }
+    }
+    public record Decoration(Region region, Anchor anchor, int x, int y, boolean foreground,
+                             String type, String text, String color, Boolean shadow, Boolean bold, Boolean italic,
+                             @SerializedName("x_scale") Double xScale, @SerializedName("y_scale") Double yScale) implements DecorationSpec {}
+
+    public boolean cursorRelativeOffset() { return offsetXMode == null || "cursor".equals(offsetXMode); }
 
     public void validate() {
         require(texture != null && !texture.isBlank(), "texture is required");
@@ -35,6 +45,8 @@ public record Style(String texture, int textureWidth, int textureHeight,
         require(minWidth > 0 && maxWidth >= minWidth && maxWidth <= 2048, "invalid minWidth/maxWidth");
         require(Math.abs((long) offsetX) <= 4096 && Math.abs((long) offsetY) <= 4096,
                 "offsetX/offsetY must be -4096..4096");
+        require(offsetXMode == null || "cursor".equals(offsetXMode) || "screen".equals(offsetXMode),
+                "offsetXMode must be cursor or screen");
         if (separator != null && separator.enabled) {
             region(separator.region, "separator.region");
             require(separator.leftCap >= 0 && separator.rightCap >= 0
@@ -48,10 +60,9 @@ public record Style(String texture, int textureWidth, int textureHeight,
         }
         require(decorations != null && decorations.size() <= 64, "decorations must be a list of at most 64 entries");
         for (Decoration decoration : decorations) {
-            require(decoration != null && decoration.anchor != null, "decoration/anchor is required");
-            region(decoration.region, "decoration.region");
-            require(Math.abs((long) decoration.x) <= 256 && Math.abs((long) decoration.y) <= 256,
-                    "decoration offsets must be -256..256");
+            require(decoration != null, "decoration is required");
+            decoration.validateDecoration();
+            if (!decoration.isText()) region(decoration.region, "decoration.region");
         }
     }
 

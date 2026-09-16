@@ -122,8 +122,10 @@ public final class ConfigManager {
                             compile(new PackDefinitions.SourcedRule(r.source(), r.rule().condition())))).toList();
             Map<String, Atlas> atlases = new LinkedHashMap<>();
             definitions.forEach((id, style) -> atlases.put("styles/" + id, new Atlas(style.texture(), style.textureWidth(), style.textureHeight())));
-            decorations.forEach((id, decoration) -> atlases.put("decorations/" + id,
-                    new Atlas(decoration.texture(), decoration.textureWidth(), decoration.textureHeight())));
+            decorations.forEach((id, decoration) -> {
+                if (!decoration.isText()) atlases.put("decorations/" + id,
+                        new Atlas(decoration.texture(), decoration.textureWidth(), decoration.textureHeight()));
+            });
             // Decode and validate every atlas before touching the active textures.
             List<NativeImage> images = new ArrayList<>();
             for (Atlas atlas : atlases.values()) {

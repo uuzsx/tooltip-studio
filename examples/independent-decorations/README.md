@@ -1,11 +1,11 @@
-# Tooltip Studio 1.5：按条件叠加独立装饰
+# Tooltip Studio 1.6：按条件叠加独立装饰
 
 适用于 Fabric / Minecraft 1.20.4。独立装饰只叠加图片，不替换当前 tooltip 的背景、边框、分割线或文字布局。默认款、本地自定义样式、资源包样式和通过 TooltipStyle 选中的样式都支持。
 
 ## 最快测试：启用示例资源包
 
-1. 移除旧版模组 JAR，安装 `tooltip-studio-1.5+1.20.4.jar`。
-2. 将 `tooltip-studio-decoration-pack-1.5+1.20.4.zip` 放入游戏的 resourcepacks 文件夹，在游戏中启用。
+1. 移除旧版模组 JAR，安装 `tooltip-studio-1.6+1.20.4.jar`。
+2. 将 `tooltip-studio-decoration-pack-1.6+1.20.4.zip` 放入游戏的 resourcepacks 文件夹，在游戏中启用。
 3. 鼠标悬停云杉木门：左上角会出现小剑。普通木棍不会添加装饰。
 
 该包不包含 styles JSON，也不修改本地 config.json，只提供独立装饰与匹配规则。
@@ -74,7 +74,7 @@ config/tooltipstudio/
 | 左下 | BOTTOM_LEFT | -6 | 6 |
 | 右下 | BOTTOM_RIGHT | 6 | 6 |
 
-还支持 TOP、LEFT、CENTER、RIGHT、BOTTOM。设 x/y 为 0 时，装饰矩形位于面板对应角的内侧；示例的 6 像素偏移让它部分伸出边框。
+还支持 TOP、LEFT、CENTER、RIGHT、BOTTOM，以及分割线上的 SEPARATOR_LEFT、SEPARATOR_CENTER、SEPARATOR_RIGHT。1.6 支持 type=text 的纯文字装饰和 x_scale / y_scale 独立缩放，完整参数见 [新版装饰说明](../advanced-decoration-pack/README.md)。设 x/y 为 0 时，装饰矩形位于面板对应角的内侧；示例的 6 像素偏移让它部分伸出边框。
 独立装饰会与面板一起移动、缩放，并参与屏幕边缘限制。框外装饰会增加整框占用范围，贴边时面板可能整体调整位置，以避免装饰出屏。
 
 ## 按条件添加，不改变样式

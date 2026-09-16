@@ -1,0 +1,13 @@
+{
+  "type": "text",
+  "text": "◆ 传说 ◆",
+  "color": "#FFD866",
+  "shadow": true,
+  "bold": true,
+  "anchor": "SEPARATOR_CENTER",
+  "x": 0,
+  "y": 0,
+  "foreground": true,
+  "x_scale": 1,
+  "y_scale": 1
+}

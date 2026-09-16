@@ -21,6 +21,7 @@ public final class Slices {
             case TOP_LEFT, LEFT, BOTTOM_LEFT -> 0;
             case TOP, CENTER, BOTTOM -> (panelWidth - spriteWidth) / 2;
             case TOP_RIGHT, RIGHT, BOTTOM_RIGHT -> panelWidth - spriteWidth;
+            default -> throw new IllegalArgumentException("separator anchors require the rendered separator bounds");
         };
     }
     public static int anchorY(Style.Anchor a, int panelHeight, int spriteHeight) {
@@ -28,6 +29,7 @@ public final class Slices {
             case TOP_LEFT, TOP, TOP_RIGHT -> 0;
             case LEFT, CENTER, RIGHT -> (panelHeight - spriteHeight) / 2;
             case BOTTOM_LEFT, BOTTOM, BOTTOM_RIGHT -> panelHeight - spriteHeight;
+            default -> throw new IllegalArgumentException("separator anchors require the rendered separator bounds");
         };
     }
 }

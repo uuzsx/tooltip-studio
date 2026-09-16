@@ -1,0 +1,12 @@
+{
+  "type": "text",
+  "text": "Monumenta\n自定义装饰文字",
+  "color": "#8EDAC9",
+  "shadow": true,
+  "anchor": "BOTTOM",
+  "x": 0,
+  "y": 25,
+  "foreground": true,
+  "x_scale": 0.8,
+  "y_scale": 0.8
+}

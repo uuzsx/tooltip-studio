@@ -46,10 +46,16 @@ final class ShulkerSmoke {
             var json = SmokeClient.baseDefinition();
             json.addProperty("offsetX", 16);
             json.addProperty("offsetY", -12);
+            json.getAsJsonArray("decorations").add(JsonParser.parseString("""
+                    {"type":"text","text":"PREVIEW","color":"#FFD866","shadow":true,
+                     "anchor":"SEPARATOR_CENTER","foreground":true,"x_scale":0.75,"y_scale":0.75}
+                    """));
             Files.writeString(offsetStyle, json.toString());
             Path example = client.runDirectory.toPath().toAbsolutePath().getParent().resolve("examples/decoration-pack/assets/tooltipstudio");
             var overlay = JsonParser.parseString(Files.readString(example.resolve("decorations/sword/top_left.json"))).getAsJsonObject();
             overlay.addProperty("texture", "local:smoke_shulker/sword.png");
+            overlay.addProperty("x_scale", 1.5);
+            overlay.addProperty("y_scale", 0.75);
             Files.createDirectories(decoration.getParent()); Files.createDirectories(decorationPng.getParent());
             Files.writeString(decoration, overlay.toString());
             Files.copy(example.resolve("textures/decorations/sword.png"), decorationPng, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
