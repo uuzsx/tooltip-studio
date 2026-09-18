@@ -70,7 +70,13 @@ tasks.register('segmentedTextResourcePack', Zip) {
     destinationDirectory = layout.buildDirectory.dir('resourcepacks')
 }
 
-tasks.named('assemble') { dependsOn tasks.named('exampleResourcePack'), tasks.named('decorationResourcePack'), tasks.named('advancedDecorationResourcePack'), tasks.named('segmentedTextResourcePack') }
+tasks.register('beginnerResourcePack', Zip) {
+    from('examples/beginner-pack')
+    archiveFileName = "tooltip-studio-beginner-pack-${project.mod_version}+${project.minecraft_version}.zip"
+    destinationDirectory = layout.buildDirectory.dir('resourcepacks')
+}
+
+tasks.named('assemble') { dependsOn tasks.named('exampleResourcePack'), tasks.named('decorationResourcePack'), tasks.named('advancedDecorationResourcePack'), tasks.named('segmentedTextResourcePack'), tasks.named('beginnerResourcePack') }
 
 // Developer-only rendering smoke test; excluded from the distributable jar.
 sourceSets {

@@ -7,6 +7,8 @@
 作者：**幼幼紫、千村**。版本 **1.7**，纯客户端，仅支持 **Minecraft 1.20.4**。
 项目采用 [MIT 协议](LICENSE)，仓库：[uuzsx/tooltip-studio](https://github.com/uuzsx/tooltip-studio)。
 
+第一次使用？先看 [懒人教学一图流](docs/beginner-guide.png) 和 [可复制教学](docs/beginner-guide.md)。配套 [新手资源包](examples/beginner-pack) 拿普通木棍即可测试；解压后改文字、规则、样式三个文件即可开始定制。
+
 ## 安装与默认外观
 
 使用 Minecraft 1.20.4、Fabric Loader 0.15.11 或更新版，以及适用于 1.20.4 的 Fabric API。移除旧版 Tooltip Studio JAR，放入 `tooltip-studio-1.7+1.20.4.jar`；服务端无需安装。
@@ -207,6 +209,7 @@ TOP_LEFT、TOP_RIGHT、BOTTOM_LEFT、BOTTOM_RIGHT 支持四角，也支持边中
 
 使用 JDK 17 与 Gradle Wrapper：`./gradlew build`（Windows 使用 gradlew.bat）。产物为 build/libs/tooltip-studio-1.7+1.20.4.jar 和 build/resourcepacks/tooltip-studio-example-pack-1.7+1.20.4.zip。
 独立四角装饰示例为 build/resourcepacks/tooltip-studio-decoration-pack-1.7+1.20.4.zip；分割线、文字和缩放示例为 build/resourcepacks/tooltip-studio-advanced-decoration-pack-1.7+1.20.4.zip；多段彩色文字示例为 build/resourcepacks/tooltip-studio-segmented-text-pack-1.7+1.20.4.zip。
+懒人教学配套包为 build/resourcepacks/tooltip-studio-beginner-pack-1.7+1.20.4.zip，也可单独执行 `./gradlew beginnerResourcePack` 打包。
 `runSmoke` 启动开发测试客户端；`-PsmokeRunDir=run-smoke-base-only` 可使用独立测试目录，`-PcompatShulker` 启用潜影盒兼容测试。
 GitHub Actions 自动运行构建与测试，构建产物保存 14 天。详情见 [验证记录](VERIFICATION.md) 与 [素材说明](THIRD_PARTY_ASSETS.md)。
 

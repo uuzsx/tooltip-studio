@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "rules": [
+    {
+      "style": "demo",
+      "items": [
+        "minecraft:stick"
+      ]
+    }
+  ],
+  "decorationRules": [
+    {
+      "decorations": [
+        "demo/label"
+      ],
+      "items": [
+        "minecraft:stick"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "type": "text",
+  "segments": [
+    {
+      "text": "区域 : ",
+      "color": "#AAAAAA"
+    },
+    {
+      "text": "传说",
+      "color": "#FF5555"
+    }
+  ],
+  "anchor": "BOTTOM",
+  "y": 14,
+  "foreground": true
+}
