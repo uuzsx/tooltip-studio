@@ -87,7 +87,7 @@ final class OffsetSmoke extends Screen {
             if (frames <= 105) {
                 slots.show(context, frames > 75 ? tall : shifted, 70, 180);
             } else {
-                context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.6 / 整体 XY 偏移", width / 2, 20, 0xffffff);
+                context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.7 / 整体 XY 偏移", width / 2, 20, 0xffffff);
                 context.drawCenteredTextWithShadow(textRenderer, "相同悬停高度；右侧向右 24、向上 20 个界面像素", width / 2, 42, 0xa8c5dd);
                 context.drawTextWithShadow(textRenderer, "offsetX: 0   offsetY: 0", 28, 100, 0xffffff);
                 context.drawTextWithShadow(textRenderer, "offsetX: 24   offsetY: -20", 332, 100, 0xffffff);

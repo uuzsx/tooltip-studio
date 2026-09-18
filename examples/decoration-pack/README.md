@@ -1,6 +1,6 @@
-# Tooltip Studio 1.6 独立装饰资源包
+# Tooltip Studio 1.7 独立装饰资源包
 
-Fabric / Minecraft 1.20.4。安装 Tooltip Studio 1.6 后，将本 ZIP 放入 resourcepacks 并启用。
+Fabric / Minecraft 1.20.4。安装 Tooltip Studio 1.7 后，将本 ZIP 放入 resourcepacks 并启用。
 
 - 云杉木门：左上角添加小剑。
 - 任意物品的 NBT `Monumenta.Location = "forest"`：左上角添加小剑。

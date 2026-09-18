@@ -1,0 +1,26 @@
+{
+  "type": "text",
+  "color": "#AAAAAA",
+  "segments": [
+    {
+      "text": "Masterwork : "
+    },
+    {
+      "text": "★★★★",
+      "color": "#FFD24A",
+      "bold": true
+    },
+    {
+      "text": "\nRekkengulch",
+      "color": "#C06A38",
+      "italic": true
+    }
+  ],
+  "anchor": "BOTTOM",
+  "x": 0,
+  "y": 26,
+  "shadow": true,
+  "foreground": true,
+  "x_scale": 0.9,
+  "y_scale": 0.9
+}

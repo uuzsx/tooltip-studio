@@ -53,7 +53,8 @@ public final class SmokeClient implements ClientModInitializer {
                         check(TooltipStudioClient.CONFIG.count() == 1, "resource reload retained all styles");
                         BaseStyleSmoke.start(client, () -> PackSmoke.start(client,
                                 () -> DecorationSmoke.start(client, () -> AdvancedDecorationSmoke.start(client,
-                                        () -> OffsetSmoke.start(client, () -> NbtSmoke.start(client, new Gallery()))))));
+                                        () -> SegmentedTextSmoke.start(client,
+                                                () -> OffsetSmoke.start(client, () -> NbtSmoke.start(client, new Gallery())))))));
                     }).exceptionally(failure -> {
                         failure.printStackTrace();
                         client.scheduleStop();

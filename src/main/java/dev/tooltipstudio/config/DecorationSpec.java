@@ -1,5 +1,7 @@
 package dev.tooltipstudio.config;
 
+import java.util.List;
+
 /** Shared options for decorations inside a base style and independently matched decorations. */
 public interface DecorationSpec {
     Style.Region region();
@@ -15,6 +17,21 @@ public interface DecorationSpec {
     Boolean italic();
     Double xScale();
     Double yScale();
+    List<TextSegment> segments();
+
+    record TextSegment(String text, String color, Boolean bold, Boolean italic) {}
+
+    /** Nullable new fields keep legacy JSON serialization (and preset fingerprints) unchanged. */
+    default List<TextSegment> textSegments() {
+        return segments() == null ? List.of(new TextSegment(text(), null, null, null)) : segments();
+    }
+
+    default String plainText() {
+        if (segments() == null) return text();
+        StringBuilder joined = new StringBuilder();
+        for (TextSegment segment : segments()) joined.append(segment.text());
+        return joined.toString();
+    }
 
     default boolean isText() { return "text".equals(type()); }
     default float scaleX() { return xScale() == null ? 1f : xScale().floatValue(); }
@@ -30,13 +47,30 @@ public interface DecorationSpec {
         Style.require(Math.abs((long) x()) <= 256 && Math.abs((long) y()) <= 256, "decoration offsets must be -256..256");
         validateScale(xScale(), "x_scale"); validateScale(yScale(), "y_scale");
         if (isText()) {
-            Style.require(text() != null && !text().isBlank() && text().length() <= 1024,
+            Style.require((text() != null) != (segments() != null), "text decoration requires exactly one of text or segments");
+            validateColor(color(), "text color");
+            if (segments() != null) {
+                Style.require(!segments().isEmpty() && segments().size() <= 64, "segments must contain 1..64 entries");
+                int total = 0;
+                for (int i = 0; i < segments().size(); i++) {
+                    TextSegment segment = segments().get(i);
+                    Style.require(segment != null && segment.text() != null, "segments[" + i + "] requires text");
+                    total += segment.text().length();
+                    Style.require(total <= 1024, "text decoration requires at most 1024 characters across all segments");
+                    validateColor(segment.color(), "segments[" + i + "].color");
+                }
+            }
+            String joined = plainText();
+            Style.require(!joined.isBlank() && joined.length() <= 1024,
                     "text decoration requires 1..1024 characters");
-            Style.require(text().split("\\n", -1).length <= 16, "text decoration supports at most 16 lines");
-            Style.require(color() == null || color().matches("#[0-9a-fA-F]{6}"), "text color must be #RRGGBB");
+            Style.require(joined.split("\\n", -1).length <= 16, "text decoration supports at most 16 lines");
         } else {
-            Style.require(text() == null, "set type to text when supplying decoration text");
+            Style.require(text() == null && segments() == null, "set type to text when supplying decoration text or segments");
         }
+    }
+
+    private static void validateColor(String color, String name) {
+        Style.require(color == null || color.matches("#[0-9a-fA-F]{6}"), name + " must be #RRGGBB");
     }
 
     private static void validateScale(Double value, String name) {

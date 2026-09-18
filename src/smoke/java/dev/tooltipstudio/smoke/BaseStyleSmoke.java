@@ -115,7 +115,7 @@ final class BaseStyleSmoke extends Screen {
 
     @Override public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         context.fill(0, 0, width, height, 0xff354047);
-        context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.6 / 新默认基础样式", width / 2, 22, 0xffe5dfce);
+        context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.7 / 新默认基础样式", width / 2, 22, 0xffe5dfce);
         context.drawCenteredTextWithShadow(textRenderer, "原样使用朋友提供的 PNG 与切片参数", width / 2, 44, 0xffb9c0c2);
         context.drawTextWithShadow(textRenderer, "只有名称", 30, 88, 0xffb9c0c2);
         context.drawItem(stick, 30, 128);

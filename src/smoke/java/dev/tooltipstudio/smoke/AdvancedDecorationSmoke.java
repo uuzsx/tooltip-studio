@@ -175,7 +175,7 @@ final class AdvancedDecorationSmoke extends Screen {
                 if (frames == 60) { verifyBounds(); offset(0, 0, "cursor"); }
                 if (frames == 75) { verifyBounds(); phase = 3; loadExample(); }
             } else if (phase == 4) {
-                context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.6 / 分割线锚点 · 文字装饰 · XY 缩放", width / 2, 20, 0xffe7dfce);
+                context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.7 / 分割线锚点 · 文字装饰 · XY 缩放", width / 2, 20, 0xffe7dfce);
                 context.drawCenteredTextWithShadow(textRenderer, "左右剑：x_scale 1.5 / y_scale 0.75；底部文字：0.8 倍", width / 2, 42, 0xffb8c6cb);
                 context.drawTextWithShadow(textRenderer, "分割线：左侧图片 / 居中文字 / 右侧图片", 24, 84, 0xffb8c6cb);
                 context.drawTextWithShadow(textRenderer, "标题换行后，装饰跟随分割线", 334, 84, 0xffb8c6cb);
@@ -186,7 +186,7 @@ final class AdvancedDecorationSmoke extends Screen {
                 if (frames == 30) save("tooltip-studio-advanced-decorations.png");
                 if (saved.get() == 1) { phase = 5; frames = 0; offset(24, 0, "cursor"); }
             } else if (phase == 5) {
-                context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.6 / 左右两侧与鼠标保持相同间距", width / 2, 25, 0xffe7dfce);
+                context.drawCenteredTextWithShadow(textRenderer, "Tooltip Studio 1.7 / 左右两侧与鼠标保持相同间距", width / 2, 25, 0xffe7dfce);
                 context.drawCenteredTextWithShadow(textRenderer, "offsetX: 24 / offsetXMode: cursor / 正值远离，负值靠近", width / 2, 48, 0xffb8c6cb);
                 context.drawTextWithShadow(textRenderer, "tooltip 在鼠标右侧", 60, 102, 0xffb8c6cb);
                 context.drawTextWithShadow(textRenderer, "tooltip 在鼠标左侧", 378, 102, 0xffb8c6cb);

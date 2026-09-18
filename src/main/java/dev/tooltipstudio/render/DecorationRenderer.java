@@ -33,9 +33,9 @@ final class DecorationRenderer {
         List<Text> lines = new ArrayList<>();
         int naturalWidth, naturalHeight, inset = 0;
         if (d.isText()) {
-            for (String line : d.text().split("\\r?\\n", -1))
-                lines.add(Text.literal(line).styled(s -> s.withBold(d.isBold()).withItalic(d.isItalic())));
-            inset = d.isItalic() ? 2 : 0;
+            var content = DecorationText.resolve(d);
+            lines.addAll(content.lines());
+            inset = content.italic() ? 2 : 0;
             int shadow = d.hasShadow() ? 1 : 0;
             naturalWidth = Math.max(1, lines.stream().mapToInt(font::getWidth).max().orElse(0)) + 2 * inset + shadow;
             naturalHeight = lines.size() * font.fontHeight + shadow;

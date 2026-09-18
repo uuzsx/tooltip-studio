@@ -64,7 +64,13 @@ tasks.register('advancedDecorationResourcePack', Zip) {
     archiveFileName = "tooltip-studio-advanced-decoration-pack-${project.mod_version}+${project.minecraft_version}.zip"
     destinationDirectory = layout.buildDirectory.dir('resourcepacks')
 }
-tasks.named('assemble') { dependsOn tasks.named('exampleResourcePack'), tasks.named('decorationResourcePack'), tasks.named('advancedDecorationResourcePack') }
+tasks.register('segmentedTextResourcePack', Zip) {
+    from('examples/segmented-text-pack')
+    archiveFileName = "tooltip-studio-segmented-text-pack-${project.mod_version}+${project.minecraft_version}.zip"
+    destinationDirectory = layout.buildDirectory.dir('resourcepacks')
+}
+
+tasks.named('assemble') { dependsOn tasks.named('exampleResourcePack'), tasks.named('decorationResourcePack'), tasks.named('advancedDecorationResourcePack'), tasks.named('segmentedTextResourcePack') }
 
 // Developer-only rendering smoke test; excluded from the distributable jar.
 sourceSets {

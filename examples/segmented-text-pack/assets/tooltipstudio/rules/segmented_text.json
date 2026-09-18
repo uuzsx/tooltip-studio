@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "decorationRules": [
+    {
+      "decorations": [
+        "labels/artifact"
+      ],
+      "priority": 300,
+      "nbt": {
+        "TooltipTextDemo": "artifact"
+      }
+    },
+    {
+      "decorations": [
+        "labels/masterwork"
+      ],
+      "priority": 300,
+      "nbt": {
+        "TooltipTextDemo": "masterwork"
+      }
+    }
+  ]
+}

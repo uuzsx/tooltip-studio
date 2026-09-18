@@ -1,10 +1,10 @@
-# Tooltip Studio 1.6：只保留默认基础款
+# Tooltip Studio 1.7：只保留默认基础款
 
 Fabric / Minecraft 1.20.4。新版只内置 default 一套样式，使用朋友提供的 Default.png 与 defalut.json；PNG 原样内置，JSON 仅调整贴图引用。旧极光图集、预设和图集生成脚本均已移除。
 
 ## 安装和升级
 
-移除旧版 JAR，放入 tooltip-studio-1.6+1.20.4.jar，同一实例只保留一个版本。新配置的 defaultStyle 为 default，rules 为空。
+移除旧版 JAR，放入 tooltip-studio-1.7+1.20.4.jar，同一实例只保留一个版本。新配置的 defaultStyle 为 default，rules 为空。
 旧实例不需要删除 config 文件夹：未修改的旧内置样式在原贴图缺失时会跳过，已经不存在的旧预设名称在规则、defaultStyle 和 TooltipStyle 中会自动回退到 default。
 这个兼容处理仅发生在内存中，不修改或删除用户文件。自定义样式与有效同名资源包样式仍按原配置使用。
 

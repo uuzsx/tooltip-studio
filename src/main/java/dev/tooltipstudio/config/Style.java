@@ -21,7 +21,8 @@ public record Style(String texture, int textureWidth, int textureHeight,
     }
     public record Decoration(Region region, Anchor anchor, int x, int y, boolean foreground,
                              String type, String text, String color, Boolean shadow, Boolean bold, Boolean italic,
-                             @SerializedName("x_scale") Double xScale, @SerializedName("y_scale") Double yScale) implements DecorationSpec {}
+                             @SerializedName("x_scale") Double xScale, @SerializedName("y_scale") Double yScale,
+                             List<TextSegment> segments) implements DecorationSpec {}
 
     public boolean cursorRelativeOffset() { return offsetXMode == null || "cursor".equals(offsetXMode); }
 

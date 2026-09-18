@@ -1,11 +1,11 @@
-# Tooltip Studio 1.6：按条件叠加独立装饰
+# Tooltip Studio 1.7：按条件叠加独立装饰
 
 适用于 Fabric / Minecraft 1.20.4。独立装饰只叠加图片，不替换当前 tooltip 的背景、边框、分割线或文字布局。默认款、本地自定义样式、资源包样式和通过 TooltipStyle 选中的样式都支持。
 
 ## 最快测试：启用示例资源包
 
-1. 移除旧版模组 JAR，安装 `tooltip-studio-1.6+1.20.4.jar`。
-2. 将 `tooltip-studio-decoration-pack-1.6+1.20.4.zip` 放入游戏的 resourcepacks 文件夹，在游戏中启用。
+1. 移除旧版模组 JAR，安装 `tooltip-studio-1.7+1.20.4.jar`。
+2. 将 `tooltip-studio-decoration-pack-1.7+1.20.4.zip` 放入游戏的 resourcepacks 文件夹，在游戏中启用。
 3. 鼠标悬停云杉木门：左上角会出现小剑。普通木棍不会添加装饰。
 
 该包不包含 styles JSON，也不修改本地 config.json，只提供独立装饰与匹配规则。

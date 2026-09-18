@@ -4,12 +4,12 @@
 
 通过 JSON 或资源包自定义物品提示框，支持名称居中、分割线、条件匹配及图片和文字装饰。
 
-作者：**幼幼紫、千村**。版本 **1.6**，纯客户端，仅支持 **Minecraft 1.20.4**。
+作者：**幼幼紫、千村**。版本 **1.7**，纯客户端，仅支持 **Minecraft 1.20.4**。
 项目采用 [MIT 协议](LICENSE)，仓库：[uuzsx/tooltip-studio](https://github.com/uuzsx/tooltip-studio)。
 
 ## 安装与默认外观
 
-使用 Minecraft 1.20.4、Fabric Loader 0.15.11 或更新版，以及适用于 1.20.4 的 Fabric API。移除旧版 Tooltip Studio JAR，放入 `tooltip-studio-1.6+1.20.4.jar`；服务端无需安装。
+使用 Minecraft 1.20.4、Fabric Loader 0.15.11 或更新版，以及适用于 1.20.4 的 Fabric API。移除旧版 Tooltip Studio JAR，放入 `tooltip-studio-1.7+1.20.4.jar`；服务端无需安装。
 
 **本版只内置 default 一套基础样式。** 原样使用用户朋友提供的 Default.png 和 defalut.json，JSON 仅将 texture 改为 `tooltipstudio:textures/styles/default.png`。原极光的 9 套样式、贴图及图集生成脚本已移除，示例包也不包含旧素材。
 
@@ -139,10 +139,30 @@ style、defaultStyle 和 TooltipStyle 填相对于 styles/ 的路径，去掉 .j
 多条命中可叠加，同一个装饰 ID 只画一次；同一绘制层内，高 priority 在上方，同 priority 本地规则优先。最多同时叠加 64 个不同装饰，超过时按优先级取前 64 个。
 TOP_LEFT、TOP_RIGHT、BOTTOM_LEFT、BOTTOM_RIGHT 支持四角，也支持边中点、中心和分割线左/中/右；x/y 调整装饰相对位置。整框移动、缩放和屏幕边缘限制均包含独立装饰。
 
-可直接启用 `tooltip-studio-decoration-pack-1.6+1.20.4.zip`：云杉木门左上角出现小剑，NBT `Monumenta.Location=forest` 同样匹配，`TooltipDecorations=all_corners` 演示四角。该包不包含基础样式 JSON，也不会修改本地设置。
+可直接启用 `tooltip-studio-decoration-pack-1.7+1.20.4.zip`：云杉木门左上角出现小剑，NBT `Monumenta.Location=forest` 同样匹配，`TooltipDecorations=all_corners` 演示四角。该包不包含基础样式 JSON，也不会修改本地设置。
 完整参数、四角表格、本地安装与测试命令见 [独立装饰说明](examples/independent-decorations/README.md)。剑贴图原样来自用户提供的 test.png，仅在可选示例中分发，默认 JAR 不会自动添加装饰。
 
 1.6 新增的 [锚点、文字与缩放示例](examples/advanced-decoration-pack/README.md) 提供完整 JSON 和可直接启用的资源包。图片和文字都可用 `x_scale` / `y_scale`（默认 1，范围 0.0625..16）。分割线锚点为 `SEPARATOR_LEFT`、`SEPARATOR_CENTER`、`SEPARATOR_RIGHT`；名称换行时自动跟随，没有分割线时隐藏对应装饰。
+
+## 一个装饰内拼接多色文字
+
+1.7 起可把文本装饰中的 text 替换为 segments 数组，各段连续拼接并共用一个锚点、偏移和缩放。例如：
+
+```json
+{
+  "type": "text",
+  "segments": [
+    {"text": "Architect's Ring : ", "color": "#555555"},
+    {"text": "Artifact", "color": "#FF5555"}
+  ],
+  "anchor": "BOTTOM",
+  "y": 14,
+  "foreground": true
+}
+```
+
+各段可独立设置 color、bold、italic，省略时继承外层设置；false 可取消外层的粗体/斜体。支持换行，不自动添加空格。原 text 字符串继续有效，与 segments 二选一。最多 64 段，合计最多 1024 字符、16 行。
+独立装饰、本地/资源包和样式自带 decorations 均支持。完整规则、继承说明、测试命令与可选示例包见 [多段文字说明](examples/segmented-text-pack/README.md)。
 
 ## 自定义一套样式
 
@@ -160,7 +180,7 @@ TOP_LEFT、TOP_RIGHT、BOTTOM_LEFT、BOTTOM_RIGHT 支持四角，也支持边中
 | separator.inset / marginTop / marginBottom | 左右缩进与上下间距；enabled=false 可隐藏 |
 | padding | 正文距面板边缘的距离，不小于对应边框宽度 |
 | minWidth / maxWidth | 正文最小宽度与换行宽度，不含 padding；最大 2048 |
-| decorations | 可为空数组，最多 64 项；图片使用 region，文字使用 type=text 与 text；均支持 anchor、x/y、foreground、x_scale/y_scale |
+| decorations | 可为空数组，最多 64 项；图片使用 region，文字使用 type=text 与 text 或 segments；均支持 anchor、x/y、foreground、x_scale/y_scale |
 | offsetX / offsetY | 可省略，各自默认 0；整数 -4096..4096，单位 GUI 像素 |
 | offsetXMode | 默认 cursor：X 正值远离鼠标、负值靠近；screen：固定正右负左 |
 
@@ -185,8 +205,8 @@ TOP_LEFT、TOP_RIGHT、BOTTOM_LEFT、BOTTOM_RIGHT 支持四角，也支持边中
 
 ## 构建与验证
 
-使用 JDK 17 与 Gradle Wrapper：`./gradlew build`（Windows 使用 gradlew.bat）。产物为 build/libs/tooltip-studio-1.6+1.20.4.jar 和 build/resourcepacks/tooltip-studio-example-pack-1.6+1.20.4.zip。
-独立四角装饰示例为 build/resourcepacks/tooltip-studio-decoration-pack-1.6+1.20.4.zip；分割线、文字和缩放示例为 build/resourcepacks/tooltip-studio-advanced-decoration-pack-1.6+1.20.4.zip。
+使用 JDK 17 与 Gradle Wrapper：`./gradlew build`（Windows 使用 gradlew.bat）。产物为 build/libs/tooltip-studio-1.7+1.20.4.jar 和 build/resourcepacks/tooltip-studio-example-pack-1.7+1.20.4.zip。
+独立四角装饰示例为 build/resourcepacks/tooltip-studio-decoration-pack-1.7+1.20.4.zip；分割线、文字和缩放示例为 build/resourcepacks/tooltip-studio-advanced-decoration-pack-1.7+1.20.4.zip；多段彩色文字示例为 build/resourcepacks/tooltip-studio-segmented-text-pack-1.7+1.20.4.zip。
 `runSmoke` 启动开发测试客户端；`-PsmokeRunDir=run-smoke-base-only` 可使用独立测试目录，`-PcompatShulker` 启用潜影盒兼容测试。
 GitHub Actions 自动运行构建与测试，构建产物保存 14 天。详情见 [验证记录](VERIFICATION.md) 与 [素材说明](THIRD_PARTY_ASSETS.md)。
 

@@ -1,10 +1,10 @@
-# Tooltip Studio 1.6：分割线锚点、文字装饰、XY 缩放与偏移
+# Tooltip Studio 1.7：分割线锚点、文字装饰、XY 缩放与偏移
 
-适用于 Fabric / Minecraft 1.20.4。移除旧版 Tooltip Studio JAR，安装 `tooltip-studio-1.6+1.20.4.jar`，保留 Fabric API。
+适用于 Fabric / Minecraft 1.20.4。移除旧版 Tooltip Studio JAR，安装 `tooltip-studio-1.7+1.20.4.jar`，保留 Fabric API。
 
 ## 直接试用资源包
 
-将 `tooltip-studio-advanced-decoration-pack-1.6+1.20.4.zip` 放入游戏的 resourcepacks 并启用。本包只提供装饰和规则，默认款与其他自定义款均可叠加，不替换背景、边框、分割线或正文。修改资源包后按 F3+T。
+将 `tooltip-studio-advanced-decoration-pack-1.7+1.20.4.zip` 放入游戏的 resourcepacks 并启用。本包只提供装饰和规则，默认款与其他自定义款均可叠加，不替换背景、边框、分割线或正文。修改资源包后按 F3+T。
 
 在有命令权限的 1.20.4 测试世界执行：
 
@@ -74,6 +74,8 @@ type 可省略，默认 texture。源图上的 region 不变，上例最终显�
 文字装饰不需要 texture、textureWidth、textureHeight 或 region。text 是直接显示的文字，支持中文与 `\n` 换行；例如 `"text":"Monumenta\n自定义装饰文字"`。它是固定文字，不会自动读取物品 NBT 或替换变量，也不解析 JSON 文本组件。
 使用游戏当前字体；color 可省略，默认白色，填写时用 #RRGGBB。bold / italic 默认 false，shadow 默认 true。最多 1024 个字符、16 行，不接受空白文字。多行文字按最长一行的整体矩形锚定，行内左对齐。
 图片和文字的 foreground 默认 false，在面板之后、分割线和正文之前画；true 在正文之后叠加。装饰不占据正文排版空间，可能覆盖现有内容，可用 x/y 调整位置。
+
+1.7 还可使用 segments 数组，在一个装饰中拼接不同颜色、粗体、斜体的文字，格式见 [多段文字示例](../segmented-text-pack/README.md)。旧 text 字符串写法原样保留；使用 segments 时删除外层 text。
 
 ## 匹配条件、分类目录与本地配置
 

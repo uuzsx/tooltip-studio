@@ -47,7 +47,7 @@ final class ShulkerSmoke {
             json.addProperty("offsetX", 16);
             json.addProperty("offsetY", -12);
             json.getAsJsonArray("decorations").add(JsonParser.parseString("""
-                    {"type":"text","text":"PREVIEW","color":"#FFD866","shadow":true,
+                    {"type":"text","segments":[{"text":"BOX ","color":"#AAAAAA"},{"text":"PREVIEW","color":"#FFD866"}],"shadow":true,
                      "anchor":"SEPARATOR_CENTER","foreground":true,"x_scale":0.75,"y_scale":0.75}
                     """));
             Files.writeString(offsetStyle, json.toString());
