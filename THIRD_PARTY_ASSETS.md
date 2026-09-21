@@ -19,6 +19,8 @@ assets/tooltipstudio/icon.png 与示例资源包 pack.png 使用用户提供的 
 1.5 起的可选装饰资源包和本地示例（含 1.6 的 advanced-decoration-pack）使用用户提供的 test.png，保存为 sword.png，PNG 字节原样保留，素材权属归原作者。
 整图 128×128，示例 JSON 只选取左上角 16×16 的剑区域；四个角共用同一张 PNG。该图片不内置于模组 JAR，不作为第二套 tooltip 背景或边框。
 
+1.8 的可选 `examples/animated-decoration-pack` 使用本项目程序生成的 16×128 星光测试帧条 `spark_strip.png`，按项目 MIT 协议提供。该图只作为装饰示例，不内置于 JAR；未使用用户参考 GIF 中的素材。
+
 ## 第三方依赖
 
 MixinExtras 0.4.1 作为嵌套运行库包含在 JAR 中，遵循 MIT 许可证；其原始 LICENSE_MixinExtras 保留在内嵌 JAR 内。

@@ -32,6 +32,9 @@ public record PackDefinitions(Map<String, Style> styles, Map<String, DecorationD
                 Style style = read(entry.getValue(), Style.class);
                 style.validate();
                 Style.require(!style.texture().startsWith("local:"), "resource-pack styles must use a resource texture ID, not local:");
+                for (var decoration : style.decorations())
+                    Style.require(decoration.isText() || decoration.texture() == null || !decoration.texture().startsWith("local:"),
+                            "resource-pack inline decorations must use a resource texture ID, not local:");
                 styles.put(name, style);
             } catch (IOException | RuntimeException e) { throw invalid(source, e); }
         }

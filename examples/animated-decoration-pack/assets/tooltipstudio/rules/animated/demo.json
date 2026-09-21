@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "rules": [
+    {
+      "style": "animated/demo",
+      "priority": 300,
+      "items": [
+        "minecraft:stick"
+      ]
+    }
+  ],
+  "decorationRules": [
+    {
+      "decorations": [
+        "animated/spark"
+      ],
+      "priority": 300,
+      "items": [
+        "minecraft:stick"
+      ]
+    }
+  ]
+}

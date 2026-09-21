@@ -1,3 +1,14 @@
+# 1.8 动态装饰与单独贴图验证
+
+- 验证日期：2026-09-21；Minecraft 1.20.4、Windows、JDK 17、Gradle 8.6。71 项 JUnit 测试通过，新增 7 项覆盖帧时间边界与循环、横纵排列、非零首帧坐标、全部帧越界检查、无效动画、独立尺寸、继承图集、旧序列化及资源包路径限制。
+- Loader 0.15.11 的 `build runSmoke -PsmokeRunDir=run-smoke-animation`，以及 Loader 0.19.5 + Shulker Box Tooltip 4.1.0 + Cloth Config 13.0.121 的 `build runSmoke -PcompatShulker -Ploader_version=0.19.5` 均输出 `SMOKE COMPLETE`。
+- 实际 framebuffer 连续采样确认：本地样式内纵向动画与独立横向动画的三帧颜色均实际出现并循环；x_scale=1.5 / y_scale=0.75 后的单帧边界保持固定，单独静态 PNG 按自己的尺寸绘制。三个装饰区域之外的所有像素与无装饰的 tooltip 完全一致。
+- 缺失样式内 PNG 与动画后续帧越界均拒绝重载，保留之前完整快照；修复后恢复。真实 ZIP 资源重载同时加载样式内与独立匹配动画，相同 PNG 只上传一次；停用包后清除其独有样式和装饰，不改写本地配置。
+- 已查看实际木棍示例截图；八张连续游戏截图展示默认面板两角的星光大小变化。原有 NBT/tag/ID 匹配、偏移、分割线锚点、多段文字、缩放、错误恢复和潜影盒框内/框外预览、锁定/解锁、嵌套上下文回归通过。
+- 仍只内置用户指定的 default 基础款。动画 PNG 仅放入可选示例包，未使用参考 GIF 的图片素材；README 保留用户精简版正文，追加本次新参数说明。
+
+范围限制：动画采用连续横向或纵向 PNG 帧条，不直接播放 GIF/APNG，不读取 .png.mcmeta，不支持网格、逐帧时长或插值。未验证朋友服务器完整模组与资源包组合，未适配其他 Minecraft 版本。
+
 # 1.7 多段彩色文字验证
 
 - 验证日期：2026-09-18；Minecraft 1.20.4、Windows、JDK 17、Gradle 8.6。

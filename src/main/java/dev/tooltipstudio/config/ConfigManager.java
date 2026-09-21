@@ -41,7 +41,8 @@ public final class ConfigManager {
     private long generation;
     private String lastError;
 
-    public record LoadedStyle(Style style, Identifier texture, List<LoadedDecoration> decorations) {}
+    public record LoadedStyle(Style style, Identifier texture, Map<Integer, Identifier> inlineTextures,
+                              List<LoadedDecoration> decorations) {}
     public record LoadedDecoration(String id, DecorationDefinition definition, Identifier texture) {}
     private record Atlas(String texture, int width, int height) {}
     private record CompiledRule(String style, List<Pattern> items, List<TagKey<Item>> tags, List<String> rarities,
@@ -121,14 +122,22 @@ public final class ConfigManager {
                     .map(r -> new CompiledDecorationRule(List.copyOf(r.rule().decorations()),
                             compile(new PackDefinitions.SourcedRule(r.source(), r.rule().condition())))).toList();
             Map<String, Atlas> atlases = new LinkedHashMap<>();
-            definitions.forEach((id, style) -> atlases.put("styles/" + id, new Atlas(style.texture(), style.textureWidth(), style.textureHeight())));
+            definitions.forEach((id, style) -> {
+                atlases.put("styles/" + id, new Atlas(style.texture(), style.textureWidth(), style.textureHeight()));
+                for (int i = 0; i < style.decorations().size(); i++) {
+                    var decoration = style.decorations().get(i);
+                    if (!decoration.isText() && decoration.texture() != null)
+                        atlases.put("inline/" + id + "/" + i,
+                                new Atlas(decoration.texture(), decoration.textureWidth(), decoration.textureHeight()));
+                }
+            });
             decorations.forEach((id, decoration) -> {
                 if (!decoration.isText()) atlases.put("decorations/" + id,
                         new Atlas(decoration.texture(), decoration.textureWidth(), decoration.textureHeight()));
             });
             // Decode and validate every atlas before touching the active textures.
-            List<NativeImage> images = new ArrayList<>();
-            for (Atlas atlas : atlases.values()) {
+            Map<Atlas, NativeImage> images = new LinkedHashMap<>();
+            for (Atlas atlas : new LinkedHashSet<>(atlases.values())) {
                 NativeImage image;
                 if (atlas.texture().startsWith("local:")) {
                     String relative = atlas.texture().substring(6);
@@ -147,15 +156,15 @@ public final class ConfigManager {
                 pendingImages.add(image);
                 Style.require(image.getWidth() == atlas.width() && image.getHeight() == atlas.height(),
                         atlas.texture() + ": PNG dimensions do not match textureWidth/textureHeight");
-                images.add(image);
+                images.put(atlas, image);
             }
             var textures = MinecraftClient.getInstance().getTextureManager();
-            Map<String, Identifier> textureIds = new LinkedHashMap<>();
+            Map<Atlas, Identifier> uploaded = new LinkedHashMap<>();
             int index = 0;
             long nextGeneration = ++generation;
-            for (String name : atlases.keySet()) {
-                Identifier id = new Identifier("tooltipstudio", "runtime/" + nextGeneration + "/" + name);
-                NativeImage image = images.get(index++);
+            for (var entry : images.entrySet()) {
+                Identifier id = new Identifier("tooltipstudio", "runtime/" + nextGeneration + "/atlas_" + index++);
+                NativeImage image = entry.getValue();
                 NativeImageBackedTexture texture = new NativeImageBackedTexture(image);
                 pendingImages.remove(image); // NativeImageBackedTexture now owns it.
                 try {
@@ -163,10 +172,19 @@ public final class ConfigManager {
                     textures.registerTexture(id, texture);
                 } catch (RuntimeException e) { texture.close(); throw e; }
                 registered.add(id);
-                textureIds.put(name, id);
+                uploaded.put(entry.getKey(), id);
             }
+            Map<String, Identifier> textureIds = new LinkedHashMap<>();
+            atlases.forEach((name, atlas) -> textureIds.put(name, uploaded.get(atlas)));
             Map<String, LoadedStyle> loaded = new LinkedHashMap<>();
-            definitions.forEach((id, style) -> loaded.put(id, new LoadedStyle(style, textureIds.get("styles/" + id), List.of())));
+            definitions.forEach((id, style) -> {
+                Map<Integer, Identifier> inline = new LinkedHashMap<>();
+                for (int i = 0; i < style.decorations().size(); i++) {
+                    Identifier texture = textureIds.get("inline/" + id + "/" + i);
+                    if (texture != null) inline.put(i, texture);
+                }
+                loaded.put(id, new LoadedStyle(style, textureIds.get("styles/" + id), Map.copyOf(inline), List.of()));
+            });
             Map<String, LoadedDecoration> loadedDecorations = new LinkedHashMap<>();
             decorations.forEach((id, decoration) -> loadedDecorations.put(id,
                     new LoadedDecoration(id, decoration, textureIds.get("decorations/" + id))));
@@ -227,7 +245,7 @@ public final class ConfigManager {
         for (String decoration : selected) overlays.add(snapshot.decorations.get(decoration));
         // Paint low priority first; foreground/background still define the two separate layers.
         Collections.reverse(overlays);
-        return new LoadedStyle(base.style(), base.texture(), List.copyOf(overlays));
+        return new LoadedStyle(base.style(), base.texture(), base.inlineTextures(), List.copyOf(overlays));
     }
 
     private LoadedStyle selectBase(Snapshot snapshot, ItemStack stack) {

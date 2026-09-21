@@ -234,3 +234,30 @@
 # 查看
 `/tooltipstudio decorations`列出已有的装饰样式
 `/tooltipstudio list`列出已有的Tooltip样式
+
+## 1.8：动态装饰与单独贴图
+
+样式里的 `decorations` 现在也可添加 `texture`、`textureWidth`、`textureHeight`，引用另一张 PNG；省略这三个字段时继续使用该样式的贴图。
+在图片装饰中添加 `animation` 即可循环播放 PNG 序列帧，独立装饰和样式内装饰都支持：
+
+```json
+{
+    "texture": "tooltipstudio:textures/decorations/spark_strip.png",
+    "textureWidth": 16,
+    "textureHeight": 128,
+    "region": {"u": 0, "v": 0, "width": 16, "height": 16},
+    "animation": {"frames": 8, "frameTime": 2, "direction": "vertical"},
+    "anchor": "TOP_LEFT",
+    "x": -6,
+    "y": -6,
+    "foreground": true
+}
+```
+
+这段可以放进样式的 `decorations` 数组，也可以单独保存为装饰 JSON。删除 `animation` 就是静态图片装饰。
+`region` 指定第一帧，`textureWidth` / `textureHeight` 是整张 PNG 的尺寸；后续帧按单帧大小连续排列。
+`frames` 为 1～256 帧；`frameTime` 每单位为 1/20 秒，默认 2，范围 1～1200；`direction` 默认 `vertical`（纵向），也可填 `horizontal`（横向）。
+锚点、偏移、XY 缩放与绘制层继续有效，动画不会改变装饰的显示尺寸。
+
+使用 PNG 序列帧，不直接播放 GIF/APNG，不读取 `.png.mcmeta` 动画；GIF 需先转换为帧条。资源包修改后按 F3+T，本地配置修改后用 `/tooltipstudio reload`。
+完整制作方法与拿木棍即可测试的资源包见 [动态装饰示例](examples/animated-decoration-pack/README.md)。

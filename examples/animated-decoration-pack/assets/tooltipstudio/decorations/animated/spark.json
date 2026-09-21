@@ -1,0 +1,20 @@
+{
+  "texture": "tooltipstudio:textures/decorations/spark_strip.png",
+  "textureWidth": 16,
+  "textureHeight": 128,
+  "region": {
+    "u": 0,
+    "v": 0,
+    "width": 16,
+    "height": 16
+  },
+  "animation": {
+    "frames": 8,
+    "frameTime": 2,
+    "direction": "vertical"
+  },
+  "anchor": "TOP_RIGHT",
+  "x": 6,
+  "y": -6,
+  "foreground": true
+}

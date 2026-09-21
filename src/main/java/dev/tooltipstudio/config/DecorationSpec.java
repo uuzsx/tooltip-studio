@@ -18,6 +18,7 @@ public interface DecorationSpec {
     Double xScale();
     Double yScale();
     List<TextSegment> segments();
+    DecorationAnimation animation();
 
     record TextSegment(String text, String color, Boolean bold, Boolean italic) {}
 
@@ -47,6 +48,7 @@ public interface DecorationSpec {
         Style.require(Math.abs((long) x()) <= 256 && Math.abs((long) y()) <= 256, "decoration offsets must be -256..256");
         validateScale(xScale(), "x_scale"); validateScale(yScale(), "y_scale");
         if (isText()) {
+            Style.require(animation() == null, "animation is only supported for texture decorations");
             Style.require((text() != null) != (segments() != null), "text decoration requires exactly one of text or segments");
             validateColor(color(), "text color");
             if (segments() != null) {
@@ -67,6 +69,16 @@ public interface DecorationSpec {
         } else {
             Style.require(text() == null && segments() == null, "set type to text when supplying decoration text or segments");
         }
+    }
+
+    default void validateImage(int textureWidth, int textureHeight) {
+        Style.require(textureWidth > 0 && textureWidth <= 4096 && textureHeight > 0 && textureHeight <= 4096,
+                "decoration texture dimensions must be 1..4096");
+        var r = region();
+        Style.require(r != null && r.u() >= 0 && r.v() >= 0 && r.width() > 0 && r.height() > 0
+                        && (long) r.u() + r.width() <= textureWidth && (long) r.v() + r.height() <= textureHeight,
+                "decoration region lies outside the texture or has invalid dimensions");
+        if (animation() != null) animation().validate(r, textureWidth, textureHeight);
     }
 
     private static void validateColor(String color, String name) {

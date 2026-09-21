@@ -3,7 +3,7 @@ package dev.tooltipstudio.config;
 import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
-/** Atlas regions refer to one PNG; layout and whole-tooltip offsets use GUI pixels. */
+/** Panel regions share one PNG; decorations can optionally use a separate PNG. */
 public record Style(String texture, int textureWidth, int textureHeight,
                     Region background, Frame frame, Separator separator,
                     Insets padding, int minWidth, int maxWidth, List<Decoration> decorations,
@@ -22,7 +22,11 @@ public record Style(String texture, int textureWidth, int textureHeight,
     public record Decoration(Region region, Anchor anchor, int x, int y, boolean foreground,
                              String type, String text, String color, Boolean shadow, Boolean bold, Boolean italic,
                              @SerializedName("x_scale") Double xScale, @SerializedName("y_scale") Double yScale,
-                             List<TextSegment> segments) implements DecorationSpec {}
+                             List<TextSegment> segments, String texture, Integer textureWidth, Integer textureHeight,
+                             DecorationAnimation animation) implements DecorationSpec {
+        public int imageWidth(Style style) { return isText() ? 0 : texture == null ? style.textureWidth() : textureWidth; }
+        public int imageHeight(Style style) { return isText() ? 0 : texture == null ? style.textureHeight() : textureHeight; }
+    }
 
     public boolean cursorRelativeOffset() { return offsetXMode == null || "cursor".equals(offsetXMode); }
 
@@ -63,7 +67,16 @@ public record Style(String texture, int textureWidth, int textureHeight,
         for (Decoration decoration : decorations) {
             require(decoration != null, "decoration is required");
             decoration.validateDecoration();
-            if (!decoration.isText()) region(decoration.region, "decoration.region");
+            if (!decoration.isText()) {
+                if (decoration.texture == null) {
+                    require(decoration.textureWidth == null && decoration.textureHeight == null,
+                            "set decoration.texture when supplying separate texture dimensions");
+                } else {
+                    require(!decoration.texture.isBlank() && decoration.textureWidth != null && decoration.textureHeight != null,
+                            "separate decoration texture requires texture, textureWidth and textureHeight");
+                }
+                decoration.validateImage(decoration.imageWidth(this), decoration.imageHeight(this));
+            }
         }
     }
 
