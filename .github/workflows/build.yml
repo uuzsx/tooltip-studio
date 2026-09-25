@@ -52,3 +52,36 @@ jobs:
             ${{ matrix.output }}/resourcepacks/*.zip
           if-no-files-found: error
           retention-days: 14
+
+  neoforge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        mc: ['1.21.1', '1.21.4', '26.1.1', '26.1.2', '26.2', '26.3']
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Java 21 and 25
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: |
+            21
+            25
+          cache: gradle
+      - name: Build and test NeoForge
+        working-directory: neoforge
+        run: ./gradlew --no-daemon -Pmc=${{ matrix.mc }} build compileSmokeJava
+      - name: Audit NeoForge artifacts
+        run: python3 neoforge/tools/verify_builds.py --mc ${{ matrix.mc }}
+      - name: Upload NeoForge artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tooltip-studio-neoforge-${{ matrix.mc }}
+          path: |
+            neoforge/build/${{ matrix.mc }}/libs/*.jar
+            neoforge/build/${{ matrix.mc }}/resourcepacks/*.zip
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,29 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="MIT"
+
+[[mods]]
+modId="tooltipstudio"
+version="${modVersion}"
+displayName="Tooltip Studio"
+${iconKey}="assets/tooltipstudio/icon.png"
+authors="幼幼紫、千村"
+description='''通过 JSON 或资源包自定义物品提示框，支持名称居中、分割线、条件匹配及图片和文字装饰。'''
+displayTest="IGNORE_ALL_VERSION"
+
+[[dependencies.tooltipstudio]]
+modId="neoforge"
+type="required"
+versionRange="[${neo},)"
+ordering="NONE"
+side="CLIENT"
+
+[[dependencies.tooltipstudio]]
+modId="minecraft"
+type="required"
+versionRange="[${mc}]"
+ordering="NONE"
+side="CLIENT"
+
+[[mixins]]
+config="tooltipstudio.neoforge.mixins.json"

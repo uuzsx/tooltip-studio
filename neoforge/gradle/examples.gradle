@@ -1,0 +1,51 @@
+// Reuse the same style/rule/PNG examples, with version-specific pack metadata and commands.
+def formats = ['1.21.1':[34,0], '1.21.4':[46,0], '26.1.1':[84,0], '26.1.2':[84,0], '26.2':[88,0], '26.3':[97,1]]
+def format = formats[minecraftTarget]
+def metadata = tasks.register('examplePackMetadata') {
+    inputs.property('mc', minecraftTarget)
+    def output = layout.buildDirectory.file('generated/pack/pack.mcmeta')
+    outputs.file(output)
+    doLast {
+        def pack = minecraftTarget.startsWith('26.')
+                ? [description:"Tooltip Studio ${modVersion} / NeoForge ${minecraftTarget}", min_format:format, max_format:format]
+                : [description:"Tooltip Studio ${modVersion} / NeoForge ${minecraftTarget}", pack_format:format[0]]
+        output.get().asFile.parentFile.mkdirs()
+        output.get().asFile.setText(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson([pack:pack])), 'UTF-8')
+    }
+}
+def commandsFile = file('../examples/modern-commands.json')
+def commands = new groovy.json.JsonSlurper().parse(commandsFile, 'UTF-8')
+['resource-pack', 'decoration-pack', 'advanced-decoration-pack', 'segmented-text-pack', 'beginner-pack', 'animated-decoration-pack', 'component-pack'].each { name ->
+    def taskName = name.split('-').collect { it.capitalize() }.join('')
+    def packTask = tasks.register("example${taskName}", Zip) {
+        inputs.file(commandsFile)
+        inputs.file('gradle/examples.gradle')
+        inputs.properties(mc:minecraftTarget, modVersion:modVersion)
+        from("../examples/${name}") {
+            exclude 'pack.mcmeta'
+            filteringCharset = 'UTF-8'
+            filesMatching('README.md') {
+                filter { line ->
+                    def text = commands.getOrDefault(line, line)
+                            .replaceAll(/1\.[0-9]+(?:\.[0-9]+)?\+1\.20\.4/, "${modVersion}+${minecraftTarget}")
+                            .replace('1.20.4', minecraftTarget)
+                            .replace('保留 Fabric API', '使用对应版本的 NeoForge')
+                            .replace('Fabric API', 'NeoForge')
+                            .replace('Fabric', 'NeoForge')
+                            .replace('tooltip-studio-', 'tooltip-studio-neoforge-')
+                            .replaceAll(/Tooltip Studio 1\.(?:7|8|9)(?:\.0)?/, "Tooltip Studio ${modVersion}")
+                            .replace('docs/1.21-components.md', 'docs/neoforge.md')
+                            .replace('Minecraft 1.21.1～1.21.4', "Minecraft ${minecraftTarget}")
+                            .replace('pack_format=22', "资源包格式 ${format.join('.')}")
+                    if (minecraftTarget.startsWith('26.') && text.startsWith('/give ')) text = text.replace("'{", "{").replace("}'", "}")
+                    text
+                }
+            }
+        }
+        from(metadata)
+        from('../docs/neoforge.md') { into 'docs' }
+        archiveFileName = "tooltip-studio-neoforge-${name}-${modVersion}+${minecraftTarget}.zip"
+        destinationDirectory = layout.buildDirectory.dir('resourcepacks')
+    }
+    tasks.named('assemble') { dependsOn packTask }
+}

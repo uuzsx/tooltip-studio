@@ -1,0 +1,261 @@
+package dev.tooltipstudio.config;
+
+import dev.tooltipstudio.compat.ComponentMatcher;
+import dev.tooltipstudio.compat.VersionApi;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import net.neoforged.fml.loading.FMLPaths;
+import net.minecraft.client.Minecraft;
+import com.mojang.blaze3d.platform.NativeImage;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.CompoundTag;
+import java.util.function.Predicate;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.tags.TagKey;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.resources.ResourceLocation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+public final class ConfigManager {
+    public static final Logger LOGGER = LoggerFactory.getLogger("Tooltip Studio");
+    private static final Gson GSON = new GsonBuilder().create();
+    private final Path directory = FMLPaths.CONFIGDIR.get().resolve("tooltipstudio");
+    private Snapshot current;
+    private long generation;
+    private String lastError;
+
+    public record LoadedStyle(Style style, ResourceLocation texture, Map<Integer, ResourceLocation> inlineTextures,
+                              List<LoadedDecoration> decorations) {}
+    public record LoadedDecoration(String id, DecorationDefinition definition, ResourceLocation texture) {}
+    private record Atlas(String texture, int width, int height) {}
+    private record CompiledRule(String style, List<Pattern> items, List<TagKey<Item>> tags, List<String> rarities,
+                                List<NbtMatcher> nbt, Predicate<ItemStack> components) {
+        boolean matches(ItemStack stack, String id, CompoundTag customData) {
+            // OR inside one array; AND between supplied arrays.
+            return (items.isEmpty() || items.stream().anyMatch(p -> p.matcher(id).matches()))
+                    && (tags.isEmpty() || tags.stream().anyMatch(stack::is))
+                    && (rarities.isEmpty() || rarities.contains(stack.getRarity().name().toLowerCase(Locale.ROOT)))
+                    && (nbt.isEmpty() || nbt.stream().allMatch(condition -> condition.matches(customData)))
+                    && components.test(stack);
+        }
+    }
+    private record CompiledDecorationRule(List<String> decorations, CompiledRule condition) {}
+    private record Snapshot(Settings settings, Map<String, LoadedStyle> styles, List<CompiledRule> rules,
+                            Map<String, LoadedDecoration> decorations, List<CompiledDecorationRule> decorationRules,
+                            List<ResourceLocation> ownedTextures) {}
+
+    public void initialize() {
+        try {
+            Files.createDirectories(directory.resolve("styles"));
+            Files.createDirectories(directory.resolve("decorations"));
+            Files.createDirectories(directory.resolve("textures"));
+            // Seed only on first installation. Deleted sample styles stay deleted on later starts.
+            if (!Files.exists(directory.resolve("config.json"))) {
+                try (Reader reader = new java.io.InputStreamReader(bundled("styles.json"), StandardCharsets.UTF_8)) {
+                    for (String name : GSON.fromJson(reader, String[].class))
+                        copyDefault("styles/" + name + ".json");
+                }
+                copyDefault("config.json");
+            }
+        } catch (Exception e) {
+            LOGGER.error("Could not create Tooltip Studio configuration", e);
+        }
+    }
+
+    private InputStream bundled(String name) throws IOException {
+        InputStream stream = ConfigManager.class.getResourceAsStream("/assets/tooltipstudio/defaults/" + name);
+        if (stream == null) throw new IOException("Missing bundled default: " + name);
+        return stream;
+    }
+    private void copyDefault(String name) throws IOException {
+        Path destination = directory.resolve(name);
+        if (!Files.exists(destination)) try (InputStream input = bundled(name)) { Files.copy(input, destination); }
+    }
+
+    /** Called on the client apply thread, or by a client command. A bad edit retains the last working snapshot. */
+    public boolean reload(ResourceManager resources) {
+        List<NativeImage> pendingImages = new ArrayList<>();
+        List<ResourceLocation> registered = new ArrayList<>();
+        try {
+            Settings settings = read(directory.resolve("config.json"), Settings.class);
+            PackDefinitions packs = PackDefinitions.load(resources);
+            Map<String, Style> definitions = StyleFiles.loadLocal(directory.resolve("styles"), packs.styles().keySet());
+            // Ignore only unchanged old preset parameters whose bundled texture was retired.
+            // Edited styles and textures supplied again by a resource pack remain the user's choice.
+            definitions.entrySet().removeIf(entry -> LegacyPresets.unchanged(entry.getKey(), entry.getValue())
+                    && resources.getResource(VersionApi.id(entry.getValue().texture())).isEmpty());
+            definitions.putAll(packs.styles());
+            // The base style also exists for upgrades without creating or replacing any user files.
+            if (!definitions.containsKey("default")) {
+                try (Reader reader = new java.io.InputStreamReader(bundled("styles/default.json"), StandardCharsets.UTF_8)) {
+                    Style base = GSON.fromJson(reader, Style.class);
+                    Style.require(base != null, "bundled default style cannot be null");
+                    base.validate();
+                    definitions.put("default", base);
+                }
+            }
+            settings = LegacyPresets.settings(settings, definitions.keySet());
+            settings.validate(definitions.keySet());
+            List<CompiledRule> rules = packs.mergeRules(settings, definitions.keySet()).stream()
+                    .sorted(Comparator.comparingInt((PackDefinitions.SourcedRule r) -> r.rule().priority()).reversed())
+                    .map(ConfigManager::compile).toList();
+            Map<String, DecorationDefinition> decorations = DecorationFiles.loadLocal(directory.resolve("decorations"), packs.decorations().keySet());
+            decorations.putAll(packs.decorations());
+            List<CompiledDecorationRule> decorationRules = packs.mergeDecorationRules(settings, decorations.keySet()).stream()
+                    .sorted(Comparator.comparingInt((PackDefinitions.SourcedDecorationRule r) -> r.rule().priority()).reversed())
+                    .map(r -> new CompiledDecorationRule(List.copyOf(r.rule().decorations()),
+                            compile(new PackDefinitions.SourcedRule(r.source(), r.rule().condition())))).toList();
+            Map<String, Atlas> atlases = new LinkedHashMap<>();
+            definitions.forEach((id, style) -> {
+                atlases.put("styles/" + id, new Atlas(style.texture(), style.textureWidth(), style.textureHeight()));
+                for (int i = 0; i < style.decorations().size(); i++) {
+                    var decoration = style.decorations().get(i);
+                    if (!decoration.isText() && decoration.texture() != null)
+                        atlases.put("inline/" + id + "/" + i,
+                                new Atlas(decoration.texture(), decoration.textureWidth(), decoration.textureHeight()));
+                }
+            });
+            decorations.forEach((id, decoration) -> {
+                if (!decoration.isText()) atlases.put("decorations/" + id,
+                        new Atlas(decoration.texture(), decoration.textureWidth(), decoration.textureHeight()));
+            });
+            // Decode and validate every atlas before touching the active textures.
+            Map<Atlas, NativeImage> images = new LinkedHashMap<>();
+            for (Atlas atlas : new LinkedHashSet<>(atlases.values())) {
+                NativeImage image;
+                try (InputStream input = TextureFiles.open(resources, directory.resolve("textures"), atlas.texture())) {
+                    image = NativeImage.read(input);
+                }
+                pendingImages.add(image);
+                Style.require(image.getWidth() == atlas.width() && image.getHeight() == atlas.height(),
+                        atlas.texture() + ": PNG dimensions do not match textureWidth/textureHeight");
+                images.put(atlas, image);
+            }
+            var textures = Minecraft.getInstance().getTextureManager();
+            Map<Atlas, ResourceLocation> uploaded = new LinkedHashMap<>();
+            int index = 0;
+            long nextGeneration = ++generation;
+            for (var entry : images.entrySet()) {
+                ResourceLocation id = VersionApi.id("tooltipstudio", "runtime/" + nextGeneration + "/atlas_" + index++);
+                NativeImage image = entry.getValue();
+                DynamicTexture texture = VersionApi.texture(image);
+                pendingImages.remove(image); // DynamicTexture now owns it.
+                try {
+                    VersionApi.nearest(texture);
+                    textures.register(id, texture);
+                } catch (RuntimeException e) { texture.close(); throw e; }
+                registered.add(id);
+                uploaded.put(entry.getKey(), id);
+            }
+            Map<String, ResourceLocation> textureIds = new LinkedHashMap<>();
+            atlases.forEach((name, atlas) -> textureIds.put(name, uploaded.get(atlas)));
+            Map<String, LoadedStyle> loaded = new LinkedHashMap<>();
+            definitions.forEach((id, style) -> {
+                Map<Integer, ResourceLocation> inline = new LinkedHashMap<>();
+                for (int i = 0; i < style.decorations().size(); i++) {
+                    ResourceLocation texture = textureIds.get("inline/" + id + "/" + i);
+                    if (texture != null) inline.put(i, texture);
+                }
+                loaded.put(id, new LoadedStyle(style, textureIds.get("styles/" + id), Map.copyOf(inline), List.of()));
+            });
+            Map<String, LoadedDecoration> loadedDecorations = new LinkedHashMap<>();
+            decorations.forEach((id, decoration) -> loadedDecorations.put(id,
+                    new LoadedDecoration(id, decoration, textureIds.get("decorations/" + id))));
+            Snapshot previous = current;
+            current = new Snapshot(settings, Map.copyOf(loaded), rules, Map.copyOf(loadedDecorations), decorationRules, List.copyOf(registered));
+            if (previous != null) previous.ownedTextures.forEach(textures::release);
+            lastError = null;
+            LOGGER.info("Loaded {} tooltip styles, {} style rules, {} decorations and {} decoration rules",
+                    loaded.size(), rules.size(), loadedDecorations.size(), decorationRules.size());
+            return true;
+        } catch (Exception e) {
+            pendingImages.forEach(NativeImage::close);
+            registered.forEach(Minecraft.getInstance().getTextureManager()::release);
+            lastError = e.getMessage();
+            LOGGER.error("Tooltip Studio reload failed; keeping previous configuration: {}", lastError, e);
+            return false;
+        }
+    }
+
+    private static <T> T read(Path path, Class<T> type) throws IOException {
+        try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+            T result = GSON.fromJson(reader, type);
+            Style.require(result != null, path.getFileName() + " cannot be null");
+            return result;
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException(path.getFileName() + ": " + e.getMessage(), e);
+        }
+    }
+    private static <T> List<T> safe(List<T> values) { return values == null ? List.of() : values; }
+
+    private static CompiledRule compile(PackDefinitions.SourcedRule source) {
+        Settings.Rule rule = source.rule();
+        try {
+            return new CompiledRule(rule.style(), safe(rule.items()).stream().map(Settings::glob).toList(),
+                    safe(rule.tags()).stream().map(t -> TagKey.create(Registries.ITEM, VersionApi.id(t))).toList(),
+                    List.copyOf(safe(rule.rarities())), NbtMatcher.compile(rule.nbt()), ComponentMatcher.compile(rule.components()));
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException(source.source() + ": " + e.getMessage(), e);
+        }
+    }
+
+    public LoadedStyle select(ItemStack stack) {
+        Snapshot snapshot = current;
+        if (snapshot == null || !snapshot.settings.enabled() || stack.isEmpty()) return null;
+        var customData = VersionApi.customData(stack);
+        LoadedStyle base = selectBase(snapshot, stack, customData);
+        if (snapshot.decorationRules.isEmpty()) return base;
+        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        // All matching rules contribute. Keep each ID once, favoring the highest priority.
+        var selected = new LinkedHashSet<String>();
+        selection: for (var rule : snapshot.decorationRules) if (rule.condition.matches(stack, id, customData)) {
+            for (String decoration : rule.decorations) {
+                selected.add(decoration);
+                if (selected.size() == 64) break selection;
+            }
+        }
+        if (selected.isEmpty()) return base;
+        var overlays = new ArrayList<LoadedDecoration>();
+        for (String decoration : selected) overlays.add(snapshot.decorations.get(decoration));
+        // Paint low priority first; foreground/background still define the two separate layers.
+        Collections.reverse(overlays);
+        return new LoadedStyle(base.style(), base.texture(), base.inlineTextures(), List.copyOf(overlays));
+    }
+
+    private LoadedStyle selectBase(Snapshot snapshot, ItemStack stack, CompoundTag customData) {
+        String key = snapshot.settings.nbtStyleKey();
+        if (!key.isEmpty() && customData != null && !VersionApi.stringKey(customData, key).isEmpty()) {
+            LoadedStyle override = snapshot.styles.get(LegacyPresets.resolve(VersionApi.stringKey(customData, key), snapshot.styles.keySet()));
+            if (override != null) return override;
+        }
+        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        for (CompiledRule rule : snapshot.rules) if (rule.matches(stack, id, customData)) return snapshot.styles.get(rule.style);
+        return snapshot.styles.get(snapshot.settings.defaultStyle());
+    }
+    public String styleNames() { return current == null ? "" : String.join(", ", current.styles.keySet().stream().sorted().toList()); }
+    public String decorationNames() { return current == null ? "" : String.join(", ", current.decorations.keySet().stream().sorted().toList()); }
+    public int decorationCount() { return current == null ? 0 : current.decorations.size(); }
+    public String lastError() { return lastError; }
+    public int count() { return current == null ? 0 : current.styles.size(); }
+}

@@ -1,0 +1,75 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.147'
+}
+
+def targets = [
+    '1.21.1': ['21.1.251', 21],
+    '1.21.4': ['21.4.157', 21],
+    '26.1.1': ['26.1.1.15-beta', 25],
+    '26.1.2': ['26.1.2.109', 25],
+    '26.2': ['26.2.0.88', 25],
+    '26.3': ['26.3.0.16-beta', 25]
+]
+def mc = providers.gradleProperty('mc').getOrElse('1.21.1')
+if (!targets.containsKey(mc)) throw new GradleException("Unsupported NeoForge Minecraft target: ${mc}")
+def target = targets[mc]
+ext.minecraftTarget = mc
+ext.modVersion = '1.10.0'
+version = "${modVersion}+${mc}"
+group = 'dev.tooltipstudio'
+base { archivesName = 'tooltip-studio-neoforge' }
+layout.buildDirectory = file("build/${mc}")
+java { toolchain.languageVersion = JavaLanguageVersion.of(target[1]); withSourcesJar() }
+repositories { mavenCentral() }
+
+neoForge {
+    version = target[0]
+    runs {
+        client { client(); gameDirectory = file("run/${mc}") }
+    }
+    mods { tooltipstudio { sourceSet sourceSets.main } }
+}
+
+def sharedFiles = ['config/DecorationAnimation.java', 'config/DecorationFiles.java', 'config/DecorationDefinition.java',
+    'config/LegacyPresets.java', 'config/DecorationSpec.java', 'config/StyleFiles.java', 'config/Style.java',
+    'config/Settings.java', 'render/TooltipPlacement.java', 'render/Slices.java', 'render/DecorationLayout.java']
+def generateSources = tasks.register('generateSources', Sync) {
+    inputs.file('build.gradle')
+    inputs.property('mc', mc)
+    from('../src/main/java/dev/tooltipstudio') { include sharedFiles; into 'dev/tooltipstudio' }
+    from('src/main/java')
+    from("src/${mc.startsWith('26.') ? 'modern' : 'classic'}/java")
+    from("src/${mc}/java")
+    if (mc.startsWith('26.')) {
+        // Mojang renamed these classes; behavior lives in the explicit version adapters.
+        filter { line -> line.replaceAll(/\bResourceLocation\b/, 'Identifier').replaceAll(/\bGuiGraphics\b/, 'GuiGraphicsExtractor') }
+    }
+    if (mc == '26.3') filter { line -> line.replaceAll(/\bCompositePackResources\b/, 'OverlayedPackResources') }
+    filteringCharset = 'UTF-8'
+    into layout.buildDirectory.dir('generated/sources/main')
+}
+sourceSets {
+    main {
+        java.srcDirs = [generateSources]
+        resources.srcDirs = ['src/main/resources']
+    }
+}
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8'; options.release = target[1] }
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+test { useJUnitPlatform(); workingDir = rootProject.file('..') }
+processResources {
+    inputs.properties(modVersion: modVersion, mc: mc, neo: target[0], java: target[1])
+    filteringCharset = 'UTF-8'
+    from('../src/main/resources') { exclude 'fabric.mod.json', 'tooltipstudio.mixins.json' }
+    filesMatching('META-INF/neoforge.mods.toml') { expand(modVersion: modVersion, mc: mc, neo: target[0], java: target[1], iconKey: mc.startsWith('26.') ? 'iconFile' : 'logoFile') }
+    filesMatching('tooltipstudio.neoforge.mixins.json') { expand(java: target[1], accessor: mc.startsWith('26.') ? '' : ', "GuiGraphicsAccessor"') }
+}
+jar { from('../LICENSE'); from('../THIRD_PARTY_ASSETS.md') }
+apply from: 'gradle/tests.gradle'
+
+apply from: 'gradle/smoke.gradle'
+apply from: 'gradle/examples.gradle'

@@ -281,3 +281,9 @@
 分别提供对应版本 JAR；新版使用 Java 21、Fabric Loader 0.16.14+ 和对应版本 Fabric API。旧的 `nbt: {"Monumenta.Location": "forest"}` 会自动读取 `minecraft:custom_data`，原来的自定义数据规则无需改路径。新增 `components` 条件，可直接匹配原版或其他模组的持久化组件；样式规则和装饰规则均可使用。
 
 具体写法、测试命令、示例资源包和版本差异见 [1.21 组件匹配与迁移说明](docs/1.21-components.md)。1.20.4 版本继续保留，使用旧 `nbt` 条件。
+
+## NeoForge 版（1.10.0）
+
+新增 Minecraft **1.21.1、1.21.4、26.1.1、26.1.2、26.2、26.3** 的独立 NeoForge 版本，保留已有样式、装饰和匹配功能。使用对应版本的 JAR，无需 Fabric API；配置目录仍为 `config/tooltipstudio/`。
+
+`nbt` 继续读取 `minecraft:custom_data`，`components` 可匹配原版及其他模组的持久化组件。26.x 的原版文本组件命令、资源包格式与 1.21.x 有区别，完整安装和迁移示例见 [NeoForge 版本说明](docs/neoforge.md)。26.1.1、26.3 使用的 NeoForge 构建为 beta。

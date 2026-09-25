@@ -1,0 +1,46 @@
+// Run the existing behavioral tests against each loader/version API without duplicating their assertions.
+def testNames = [
+    'net.minecraft.resource.DirectoryResourcePack': 'net.minecraft.server.packs.PathPackResources',
+    'net.minecraft.resource.LifecycledResourceManagerImpl': 'net.minecraft.server.packs.resources.MultiPackResourceManager',
+    'net.minecraft.resource.ResourceType': 'net.minecraft.server.packs.PackType',
+    'net.minecraft.resource.*': 'net.minecraft.server.packs.*;\nimport net.minecraft.server.packs.resources.*',
+    'net.minecraft.nbt.NbtCompound': 'net.minecraft.nbt.CompoundTag',
+    'net.minecraft.nbt.StringNbtReader': 'dev.tooltipstudio.TestNbt',
+    'net.minecraft.text.Text': 'net.minecraft.network.chat.Component'
+]
+def shortNames = ['DirectoryResourcePack':'PathPackResources', 'LifecycledResourceManagerImpl':'MultiPackResourceManager',
+    'ResourceType':'PackType', 'ResourcePack':'PackResources', 'NbtCompound':'CompoundTag', 'StringNbtReader':'TestNbt', 'Text':'Component']
+def generateTests = tasks.register('generateTests', Sync) {
+    inputs.file('gradle/tests.gradle')
+    inputs.property('mc', minecraftTarget)
+    from('../src/test/java')
+    from('src/test/java')
+    from("src/${minecraftTarget.startsWith('26.') ? 'modern' : 'classic'}/test")
+    filteringCharset = 'UTF-8'
+    filter { line ->
+        def result = line
+        testNames.each { from, to -> result = result.replace(from, to) }
+        shortNames.each { from, to -> result = result.replaceAll(/\b${from}\b/, to) }
+        result = result.replace('.getRgb()', '.getValue()').replace('.getInputStream()', '.open()')
+                .replace('net.minecraft.resource.PackResources', 'net.minecraft.server.packs.PackResources')
+                .replace('Path.of("src/', 'Path.of(System.getProperty("tooltipstudio.sourceRoot"), "src/')
+                .replace('Path.of("examples/', 'Path.of(System.getProperty("tooltipstudio.sourceRoot"), "examples/')
+        if (minecraftTarget == '26.3') result = result.replace('.openPrimary(', '.openMetadata(')
+        result
+    }
+    into layout.buildDirectory.dir('generated/sources/test')
+}
+sourceSets.test.java.srcDirs = [generateTests]
+sourceSets.test.compileClasspath += sourceSets.main.compileClasspath
+sourceSets.test.runtimeClasspath += sourceSets.main.runtimeClasspath
+if (minecraftTarget.startsWith('26.')) {
+    neoForge.unitTest {
+        enable()
+        testedMod = neoForge.mods.tooltipstudio
+        loadedMods = [neoForge.mods.tooltipstudio]
+    }
+}
+test {
+    workingDir = rootProject.file('..')
+    systemProperty 'tooltipstudio.sourceRoot', rootProject.file('..').absolutePath
+}
