@@ -31,9 +31,9 @@ public record PackDefinitions(Map<String, Style> styles, Map<String, DecorationD
                 String name = StyleFiles.id(entry.getKey().getPath().substring("styles/".length()));
                 Style style = read(entry.getValue(), Style.class);
                 style.validate();
-                Style.require(!style.texture().startsWith("local:"), "resource-pack styles must use a resource texture ID, not local:");
+                Style.require(!TextureFiles.isLocal(style.texture()), "resource-pack styles must use a resource texture ID, not local:");
                 for (var decoration : style.decorations())
-                    Style.require(decoration.isText() || decoration.texture() == null || !decoration.texture().startsWith("local:"),
+                    Style.require(decoration.isText() || !TextureFiles.isLocal(decoration.texture()),
                             "resource-pack inline decorations must use a resource texture ID, not local:");
                 styles.put(name, style);
             } catch (IOException | RuntimeException e) { throw invalid(source, e); }
@@ -45,7 +45,7 @@ public record PackDefinitions(Map<String, Style> styles, Map<String, DecorationD
                 String name = StyleFiles.id(entry.getKey().getPath().substring("decorations/".length()));
                 DecorationDefinition definition = read(entry.getValue(), DecorationDefinition.class);
                 definition.validate();
-                Style.require(definition.isText() || !definition.texture().startsWith("local:"), "resource-pack decorations must use a resource texture ID, not local:");
+                Style.require(definition.isText() || !TextureFiles.isLocal(definition.texture()), "resource-pack decorations must use a resource texture ID, not local:");
                 decorations.put(name, definition);
             } catch (IOException | RuntimeException e) { throw invalid(source, e); }
         }

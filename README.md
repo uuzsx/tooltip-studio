@@ -261,3 +261,16 @@
 
 使用 PNG 序列帧，不直接播放 GIF/APNG，不读取 `.png.mcmeta` 动画；GIF 需先转换为帧条。资源包修改后按 F3+T，本地配置修改后用 `/tooltipstudio reload`。
 完整制作方法与拿木棍即可测试的资源包见 [动态装饰示例](examples/animated-decoration-pack/README.md)。
+
+## 1.8.1：贴图路径中的大写字母
+
+`texture` 现在支持 PNG 文件名、目录名和扩展名中的大写字母，例如：
+
+```json
+"texture": "tooltipstudio:textures/styles/valley/reverie_fireR.png"
+```
+
+对应文件为 `assets/tooltipstudio/textures/styles/valley/reverie_fireR.png`，引用与实际文件名保持一致即可。适用于样式主贴图、样式内装饰和独立装饰，也支持动画帧条、文件夹资源包、ZIP 资源包和资源包覆盖层。
+同一资源包内先找原样路径，再尝试全小写路径；多个资源包仍按优先级选择。不任意猜测其他大小写组合。
+命名空间在引用时统一为小写，资源包的 `assets/tooltipstudio/` 目录继续使用小写；样式与装饰的 JSON 文件名、ID 仍按原规则使用小写，NBT 匹配值仍区分大小写。
+本地 `local:Valley/FireR.PNG` 保留文件名原样，`local:` 前缀可用大小写。资源包改动后按 F3+T，本地配置改动后用 `/tooltipstudio reload`；缺失贴图仍会保留上一份有效配置。

@@ -2,6 +2,6 @@
   "required": true,
   "package": "dev.tooltipstudio.mixin",
   "compatibilityLevel": "JAVA_17",
-  "client": ["DrawContextMixin", "HandledScreenMixin"],
+  "client": ["DrawContextMixin", "HandledScreenMixin", "DirectoryTextureMixin", "OverlayTextureMixin"],
   "injectors": { "defaultRequire": 1 }
 }

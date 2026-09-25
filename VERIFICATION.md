@@ -1,3 +1,13 @@
+# 1.8.1 大写贴图路径验证
+
+- 验证日期：2026-09-25；Minecraft 1.20.4、Windows、JDK 17、Gradle 8.6。79 项 JUnit 测试通过，新增 8 项覆盖截图原样路径 reverie_fireR.png、目录/扩展名大写、命名空间归一化、全小写回退、同包精确路径优先、跨包优先级、资源过滤、本地路径及非法路径拒绝。
+- Loader 0.15.11 的 `build runSmoke -PsmokeRunDir=run-smoke-case` 和 Loader 0.19.5 + Shulker Box Tooltip 4.1.0 + Cloth Config 13.0.121 的 `build runSmoke -PcompatShulker -Ploader_version=0.19.5` 均输出 `SMOKE COMPLETE`。
+- 游戏中原样复现 16×64、4 帧、frameTime=4 的 reverie_fireR.png：文件夹资源包、ZIP 资源包与原版版本覆盖层均成功读取；主样式大写图集、内嵌动画和独立装饰一起加载。Framebuffer 像素验证两个装饰按预期尺寸绘制，覆盖层实际读取高层蓝色 PNG。
+- 本地 LOCAL:CaseFixture/Default.PNG 无需改名即可加载。缺失的大写 PNG 拒绝重载且保留完整旧状态；修复后恢复，停用资源包移除相关定义，本地 config.json 保持原字节。
+- 动画时序、多段文字、分割线锚点、屏幕偏移、NBT/tag/ID 匹配及潜影盒预览、锁定/解锁和嵌套上下文回归通过。发行 JAR 的两个新增 mixin 字段已映射至 intermediary 名称，refmap 正常打包。
+
+范围：仅兼容 texture 引用中的大小写，不放宽样式/装饰 JSON 文件名或 ID 规则。PNG 路径应与实际文件一致；同一包内找不到原样路径时才尝试全小写路径，不猜测其他大小写组合。未验证朋友服务器的完整模组组合。
+
 # 1.8 动态装饰与单独贴图验证
 
 - 验证日期：2026-09-21；Minecraft 1.20.4、Windows、JDK 17、Gradle 8.6。71 项 JUnit 测试通过，新增 7 项覆盖帧时间边界与循环、横纵排列、非零首帧坐标、全部帧越界检查、无效动画、独立尺寸、继承图集、旧序列化及资源包路径限制。

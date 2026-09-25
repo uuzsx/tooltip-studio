@@ -139,19 +139,8 @@ public final class ConfigManager {
             Map<Atlas, NativeImage> images = new LinkedHashMap<>();
             for (Atlas atlas : new LinkedHashSet<>(atlases.values())) {
                 NativeImage image;
-                if (atlas.texture().startsWith("local:")) {
-                    String relative = atlas.texture().substring(6);
-                    Path base = directory.resolve("textures").toAbsolutePath().normalize();
-                    Path texture = base.resolve(relative).normalize();
-                    Style.require(!relative.isBlank() && texture.startsWith(base)
-                            && texture.toRealPath().startsWith(base.toRealPath()), "local texture must stay under textures/");
-                    try (InputStream input = Files.newInputStream(texture)) { image = NativeImage.read(input); }
-                } else {
-                    Identifier id = new Identifier(atlas.texture());
-                    try (InputStream input = resources.getResource(id)
-                            .orElseThrow(() -> new IOException("Missing texture: " + id)).getInputStream()) {
-                        image = NativeImage.read(input);
-                    }
+                try (InputStream input = TextureFiles.open(resources, directory.resolve("textures"), atlas.texture())) {
+                    image = NativeImage.read(input);
                 }
                 pendingImages.add(image);
                 Style.require(image.getWidth() == atlas.width() && image.getHeight() == atlas.height(),
