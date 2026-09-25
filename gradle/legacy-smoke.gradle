@@ -1,0 +1,31 @@
+// Developer-only rendering smoke test; excluded from the distributable jar.
+sourceSets {
+    smoke {
+        compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+    }
+}
+loom {
+    mods {
+        tooltipstudio { sourceSet sourceSets.main }
+        tooltipstudio_smoke { sourceSet sourceSets.smoke }
+    }
+    runs {
+        poster {
+            client()
+            name 'Tooltip Studio item demo capture'
+            source sourceSets.smoke
+            vmArg '-Dtooltipstudio.poster=true'
+            programArgs '--width', '1280', '--height', '720'
+            runDir 'run-smoke'
+        }
+        smoke {
+            client()
+            name 'Tooltip Studio rendering smoke test'
+            source sourceSets.smoke
+            vmArg '-Dtooltipstudio.smoke=true'
+            programArgs '--width', '1280', '--height', '900'
+            runDir project.findProperty('smokeRunDir') ?: 'run-smoke'
+        }
+    }
+}

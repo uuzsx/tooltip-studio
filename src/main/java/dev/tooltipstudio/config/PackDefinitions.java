@@ -1,5 +1,6 @@
 package dev.tooltipstudio.config;
 
+import dev.tooltipstudio.compat.VersionApi;
 import com.google.gson.Gson;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
@@ -107,7 +108,7 @@ public record PackDefinitions(Map<String, Style> styles, Map<String, DecorationD
     }
 
     private static String source(Map.Entry<Identifier, Resource> entry) {
-        return "pack '" + entry.getValue().getResourcePackName() + "' / " + entry.getKey();
+        return "pack '" + VersionApi.packName(entry.getValue()) + "' / " + entry.getKey();
     }
 
     private static <T> T read(Resource resource, Class<T> type) throws IOException {

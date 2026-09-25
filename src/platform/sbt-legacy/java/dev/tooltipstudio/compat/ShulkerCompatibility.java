@@ -43,7 +43,7 @@ public final class ShulkerCompatibility {
     }
 
     public static boolean draw(TooltipComponent component, TextRenderer font, int x, int y, DrawContext context,
-                               float originX, float originY, float scale, int panelHeight,
+                               float originX, float originY, float scale, int panelWidth, int panelHeight,
                                int mouseX, int mouseY) {
         if (!(component instanceof PositionAwareTooltipComponent positioned)) return false;
         // Locked placement coordinates differ from the live mouse used for preview hit-testing.

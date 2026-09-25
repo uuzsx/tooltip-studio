@@ -5,3 +5,16 @@ pluginManagement {
     }
 }
 rootProject.name = 'tooltip-studio'
+
+def selectedTarget = providers.gradleProperty('mc').orNull
+if (selectedTarget != null && !(selectedTarget in ['1.20.4', '1.21.1', '1.21.2', '1.21.3', '1.21.4'])) {
+    throw new GradleException("Unsupported -Pmc target: ${selectedTarget}")
+}
+
+// -Pmc=1.21.1 configures only that modern target plus the legacy root project.
+['1.21.1', '1.21.2', '1.21.3', '1.21.4'].findAll {
+    !providers.gradleProperty('mc').isPresent() || providers.gradleProperty('mc').get() == it
+}.each { version ->
+    include "mc${version}"
+    project(":mc${version}").projectDir = file("versions/${version}")
+}

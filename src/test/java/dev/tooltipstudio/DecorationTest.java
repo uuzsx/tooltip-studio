@@ -35,7 +35,7 @@ class DecorationTest {
     private LifecycledResourceManagerImpl manager(String... packs) {
         return new LifecycledResourceManagerImpl(ResourceType.CLIENT_RESOURCES,
                 java.util.Arrays.stream(packs).<net.minecraft.resource.ResourcePack>map(name ->
-                        new DirectoryResourcePack(name, directory.resolve(name), false)).toList());
+                        TestPacks.directory(name, directory.resolve(name), false)).toList());
     }
 
     @Test void oldSettingsAndLegacyConversionKeepDecorationRulesOptional() {
@@ -150,13 +150,13 @@ class DecorationTest {
     @Test void shippedPackReferencesOnlyExistingDecorationsAndValidPngRegions() throws Exception {
         var example = Path.of("examples/decoration-pack");
         try (var resources = new LifecycledResourceManagerImpl(ResourceType.CLIENT_RESOURCES,
-                List.of(new DirectoryResourcePack("example", example, false)))) {
+                List.of(TestPacks.directory("example", example, false)))) {
             var pack = PackDefinitions.load(resources);
             assertTrue(pack.styles().isEmpty());
             assertEquals(4, pack.decorations().size());
             assertEquals(3, pack.mergeDecorationRules(LOCAL, pack.decorations().keySet()).size());
             for (var d : pack.decorations().values()) {
-                try (var stream = resources.getResource(new net.minecraft.util.Identifier(d.texture())).orElseThrow().getInputStream()) {
+                try (var stream = resources.getResource(dev.tooltipstudio.compat.VersionApi.id(d.texture())).orElseThrow().getInputStream()) {
                     var image = javax.imageio.ImageIO.read(stream);
                     assertEquals(d.textureWidth(), image.getWidth());
                     assertEquals(d.textureHeight(), image.getHeight());

@@ -11,9 +11,9 @@
   "mixins": ["tooltipstudio.mixins.json"],
   "license": "MIT",
   "depends": {
-    "fabricloader": ">=0.15.11",
-    "minecraft": "1.20.4",
-    "java": ">=17",
+    "fabricloader": ">=${loader_min}",
+    "minecraft": "${minecraft}",
+    "java": ">=${java}",
     "fabric-api": "*",
     "mixinextras": ">=0.4.1"
   }

@@ -1,0 +1,5 @@
+{
+  "schemaVersion": 1, "id": "tooltipstudio_smoke", "version": "1.0.0",
+  "environment": "client", "name": "Tooltip Studio developer smoke test",
+  "entrypoints": {"main": ["dev.tooltipstudio.smoke.SmokeComponents"], "client": ["dev.tooltipstudio.smoke.ModernSmokeClient"]}
+}

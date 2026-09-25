@@ -84,7 +84,7 @@ class AnimatedDecorationTest {
         Path file = directory.resolve("assets/tooltipstudio/styles/animated.json");
         Files.createDirectories(file.getParent()); Files.writeString(file, style(json).toString());
         try (var manager = new LifecycledResourceManagerImpl(ResourceType.CLIENT_RESOURCES,
-                List.of(new DirectoryResourcePack("animation-test", directory, false)))) {
+                List.of(TestPacks.directory("animation-test", directory, false)))) {
             assertEquals(4, PackDefinitions.load(manager).styles().get("animated").decorations().get(0).animation().frames());
             json.addProperty("texture", "local:spark.png"); Files.writeString(file, style(json).toString());
             var error = assertThrows(IllegalArgumentException.class, () -> PackDefinitions.load(manager));

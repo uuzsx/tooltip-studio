@@ -116,7 +116,7 @@ class DecorationFeaturesTest {
         Path definition = directory.resolve("assets/tooltipstudio/decorations/labels/legendary.json");
         Files.createDirectories(definition.getParent()); Files.writeString(definition, TEXT);
         try (var resources = new LifecycledResourceManagerImpl(ResourceType.CLIENT_RESOURCES,
-                List.of(new DirectoryResourcePack("text-only", directory, false)))) {
+                List.of(TestPacks.directory("text-only", directory, false)))) {
             var pack = PackDefinitions.load(resources);
             assertEquals(1, pack.decorations().size()); assertTrue(pack.styles().isEmpty());
             assertTrue(pack.decorations().get("labels/legendary").isText());

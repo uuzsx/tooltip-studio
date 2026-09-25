@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-/** Compiled once per reload. Paths are relative to ItemStack.getNbt(), and matching never writes NBT. */
+/** Compiled once per reload. Paths are relative to legacy item NBT or modern minecraft:custom_data; matching never writes data. */
 public final class NbtMatcher {
     private final NbtPathArgumentType.NbtPath path;
     private final List<Predicate<NbtElement>> alternatives;

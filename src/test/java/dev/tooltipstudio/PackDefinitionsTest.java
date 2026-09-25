@@ -37,7 +37,7 @@ class PackDefinitionsTest {
     private LifecycledResourceManagerImpl manager(String... packs) {
         return new LifecycledResourceManagerImpl(ResourceType.CLIENT_RESOURCES,
                 java.util.Arrays.stream(packs).<net.minecraft.resource.ResourcePack>map(name ->
-                        new DirectoryResourcePack(name, directory.resolve(name), false)).toList());
+                        TestPacks.directory(name, directory.resolve(name), false)).toList());
     }
 
     @Test void newStylesAndRulesAreLoadedWithoutEditingLocalSettings() throws Exception {
@@ -159,14 +159,14 @@ class PackDefinitionsTest {
     @Test void shippedExamplePackDefinesValidStylesTexturesAndRules() throws Exception {
         Path example = Path.of("examples/resource-pack");
         try (var manager = new LifecycledResourceManagerImpl(ResourceType.CLIENT_RESOURCES,
-                List.of(new DirectoryResourcePack("example", example, false)))) {
+                List.of(TestPacks.directory("example", example, false)))) {
             var pack = PackDefinitions.load(manager);
             assertEquals(Set.of("monumenta/forest"), pack.styles().keySet());
             assertEquals(0, pack.styles().get("monumenta/forest").offsetX());
             assertEquals(-12, pack.styles().get("monumenta/forest").offsetY());
             assertEquals(3, pack.mergeRules(LOCAL, pack.styles().keySet()).size());
             for (var style : pack.styles().values()) {
-                try (var stream = manager.getResource(new net.minecraft.util.Identifier(style.texture())).orElseThrow().getInputStream()) {
+                try (var stream = manager.getResource(dev.tooltipstudio.compat.VersionApi.id(style.texture())).orElseThrow().getInputStream()) {
                     var image = javax.imageio.ImageIO.read(stream);
                     assertEquals(style.textureWidth(), image.getWidth());
                     assertEquals(style.textureHeight(), image.getHeight());

@@ -7,7 +7,6 @@ import dev.tooltipstudio.render.StyledTooltipRenderer;
 import dev.tooltipstudio.render.TooltipRenderScope;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.item.TooltipData;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
@@ -26,7 +25,7 @@ public abstract class DrawContextMixin {
 
     // Inventory mods have now supplied the final text, data and locked coordinates.
     @WrapMethod(method = "drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;Ljava/util/Optional;II)V")
-    private void tooltipstudio$drawScoped(TextRenderer font, List<Text> text, Optional<TooltipData> data,
+    private void tooltipstudio$drawScoped(TextRenderer font, List<Text> text, Optional<?> data,
                                          int x, int y, Operation<Void> original) {
         ItemStack item = TooltipRenderScope.item();
         var style = item == null ? null : TooltipStudioClient.CONFIG.select(item);

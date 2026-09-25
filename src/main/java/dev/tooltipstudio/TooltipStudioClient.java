@@ -1,5 +1,6 @@
 package dev.tooltipstudio;
 
+import dev.tooltipstudio.compat.VersionApi;
 import dev.tooltipstudio.config.ConfigManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -20,7 +21,7 @@ public final class TooltipStudioClient implements ClientModInitializer {
     public void onInitializeClient() {
         CONFIG.initialize();
         ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
-            @Override public Identifier getFabricId() { return new Identifier("tooltipstudio", "styles"); }
+            @Override public Identifier getFabricId() { return VersionApi.id("tooltipstudio", "styles"); }
             @Override public void reload(ResourceManager manager) { CONFIG.reload(manager); }
         });
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> dispatcher.register(

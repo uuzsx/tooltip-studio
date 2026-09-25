@@ -1,14 +1,15 @@
 package dev.tooltipstudio.render;
 
+import dev.tooltipstudio.compat.VersionApi;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.tooltipstudio.compat.ShulkerCompatibility;
+import dev.tooltipstudio.compat.RenderApi;
 import dev.tooltipstudio.config.ConfigManager.LoadedStyle;
 import dev.tooltipstudio.config.Style;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.tooltip.HoveredTooltipPositioner;
 import net.minecraft.client.gui.tooltip.TooltipComponent;
-import net.minecraft.client.item.TooltipData;
 import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
 
@@ -21,7 +22,7 @@ public final class StyledTooltipRenderer {
     private record Row(TooltipComponent component, boolean title, int y) {}
 
     public static void draw(DrawContext context, TextRenderer textRenderer, List<Text> lines,
-                            Optional<TooltipData> data, int mouseX, int mouseY, LoadedStyle loaded) {
+                            Optional<?> data, int mouseX, int mouseY, LoadedStyle loaded) {
         if (lines.isEmpty()) return;
         Style style = loaded.style();
         Style.Insets padding = style.padding();
@@ -35,7 +36,7 @@ public final class StyledTooltipRenderer {
         for (OrderedText text : textRenderer.wrapLines(lines.get(0), wrapWidth)) titles.add(TooltipComponent.of(text));
         if (titles.isEmpty()) titles.add(TooltipComponent.of(lines.get(0).asOrderedText()));
         List<TooltipComponent> body = new ArrayList<>();
-        data.ifPresent(value -> body.add(TooltipComponent.of(value)));
+        data.ifPresent(value -> body.add(VersionApi.tooltipComponent(value)));
         for (int i = 1; i < lines.size(); i++) {
             List<OrderedText> wrapped = textRenderer.wrapLines(lines.get(i), wrapWidth);
             if (wrapped.isEmpty()) body.add(TooltipComponent.of(lines.get(i).asOrderedText()));
@@ -48,7 +49,7 @@ public final class StyledTooltipRenderer {
         int y = padding.top();
         for (TooltipComponent component : titles) {
             rows.add(new Row(component, true, y));
-            y += component.getHeight();
+            y += RenderApi.height(component, textRenderer);
         }
         int separatorY = -1;
         if (!body.isEmpty()) {
@@ -60,7 +61,7 @@ public final class StyledTooltipRenderer {
         }
         for (TooltipComponent component : body) {
             rows.add(new Row(component, false, y));
-            y += component.getHeight();
+            y += RenderApi.height(component, textRenderer);
         }
         int width = contentWidth + padding.left() + padding.right();
         int height = y + padding.bottom();
@@ -107,14 +108,14 @@ public final class StyledTooltipRenderer {
             // Preserve both vanilla tooltip-component passes, including bundle/item previews.
             for (Row row : rows) {
                 int x = padding.left() + (row.title ? (contentWidth - row.component.getWidth(textRenderer)) / 2 : 0);
-                row.component.drawText(textRenderer, x, row.y, matrices.peek().getPositionMatrix(), context.getVertexConsumers());
+                RenderApi.text(row.component, textRenderer, x, row.y, context);
             }
             context.draw();
             for (Row row : rows) {
                 int x = padding.left() + (row.title ? (contentWidth - row.component.getWidth(textRenderer)) / 2 : 0);
                 if (!TooltipRenderScope.SHULKER_LOADED || !ShulkerCompatibility.draw(row.component, textRenderer,
-                        x, row.y, context, px - left * scale, py - top * scale, scale, height, mouseX, mouseY))
-                    row.component.drawItems(textRenderer, x, row.y, context);
+                        x, row.y, context, px - left * scale, py - top * scale, scale, contentWidth, height, mouseX, mouseY))
+                    RenderApi.items(row.component, textRenderer, x, row.y, contentWidth, height, context);
             }
             context.draw();
             matrices.translate(0, 0, 1);
@@ -143,7 +144,7 @@ public final class StyledTooltipRenderer {
 
     private static void sprite(DrawContext context, LoadedStyle loaded, Style.Region region, int x, int y, int width, int height) {
         if (width <= 0 || height <= 0 || region.width() <= 0 || region.height() <= 0) return;
-        context.drawTexture(loaded.texture(), x, y, width, height, (float) region.u(), (float) region.v(),
+        RenderApi.texture(context, loaded.texture(), x, y, width, height, (float) region.u(), (float) region.v(),
                 region.width(), region.height(), loaded.style().textureWidth(), loaded.style().textureHeight());
     }
 }

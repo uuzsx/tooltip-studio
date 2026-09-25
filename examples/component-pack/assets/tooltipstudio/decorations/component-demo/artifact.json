@@ -1,0 +1,17 @@
+{
+  "type": "text",
+  "segments": [
+    {
+      "text": "Architect’s Ring: ",
+      "color": "#888888"
+    },
+    {
+      "text": "Artifact",
+      "color": "#FF5555"
+    }
+  ],
+  "anchor": "BOTTOM",
+  "x": 0,
+  "y": -11,
+  "foreground": true
+}

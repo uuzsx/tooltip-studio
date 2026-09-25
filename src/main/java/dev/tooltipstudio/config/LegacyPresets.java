@@ -42,7 +42,7 @@ public final class LegacyPresets {
     public static List<Settings.Rule> rules(List<Settings.Rule> rules, Set<String> available) {
         if (rules == null) return null;
         return rules.stream().map(rule -> rule == null ? null : new Settings.Rule(resolve(rule.style(), available),
-                rule.priority(), rule.items(), rule.tags(), rule.rarities(), rule.nbt())).toList();
+                rule.priority(), rule.items(), rule.tags(), rule.rarities(), rule.nbt(), rule.components())).toList();
     }
 
     public static Settings settings(Settings source, Set<String> available) {

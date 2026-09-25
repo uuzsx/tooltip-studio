@@ -1,5 +1,7 @@
 package dev.tooltipstudio.config;
 
+import dev.tooltipstudio.compat.ComponentMatcher;
+import dev.tooltipstudio.compat.VersionApi;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.loader.api.FabricLoader;
@@ -9,6 +11,8 @@ import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtCompound;
+import java.util.function.Predicate;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.TagKey;
@@ -46,13 +50,14 @@ public final class ConfigManager {
     public record LoadedDecoration(String id, DecorationDefinition definition, Identifier texture) {}
     private record Atlas(String texture, int width, int height) {}
     private record CompiledRule(String style, List<Pattern> items, List<TagKey<Item>> tags, List<String> rarities,
-                                List<NbtMatcher> nbt) {
-        boolean matches(ItemStack stack, String id) {
+                                List<NbtMatcher> nbt, Predicate<ItemStack> components) {
+        boolean matches(ItemStack stack, String id, NbtCompound customData) {
             // OR inside one array; AND between supplied arrays.
             return (items.isEmpty() || items.stream().anyMatch(p -> p.matcher(id).matches()))
                     && (tags.isEmpty() || tags.stream().anyMatch(stack::isIn))
                     && (rarities.isEmpty() || rarities.contains(stack.getRarity().name().toLowerCase(Locale.ROOT)))
-                    && (nbt.isEmpty() || nbt.stream().allMatch(condition -> condition.matches(stack.getNbt())));
+                    && (nbt.isEmpty() || nbt.stream().allMatch(condition -> condition.matches(customData)))
+                    && components.test(stack);
         }
     }
     private record CompiledDecorationRule(List<String> decorations, CompiledRule condition) {}
@@ -99,7 +104,7 @@ public final class ConfigManager {
             // Ignore only unchanged old preset parameters whose bundled texture was retired.
             // Edited styles and textures supplied again by a resource pack remain the user's choice.
             definitions.entrySet().removeIf(entry -> LegacyPresets.unchanged(entry.getKey(), entry.getValue())
-                    && resources.getResource(new Identifier(entry.getValue().texture())).isEmpty());
+                    && resources.getResource(VersionApi.id(entry.getValue().texture())).isEmpty());
             definitions.putAll(packs.styles());
             // The base style also exists for upgrades without creating or replacing any user files.
             if (!definitions.containsKey("default")) {
@@ -152,7 +157,7 @@ public final class ConfigManager {
             int index = 0;
             long nextGeneration = ++generation;
             for (var entry : images.entrySet()) {
-                Identifier id = new Identifier("tooltipstudio", "runtime/" + nextGeneration + "/atlas_" + index++);
+                Identifier id = VersionApi.id("tooltipstudio", "runtime/" + nextGeneration + "/atlas_" + index++);
                 NativeImage image = entry.getValue();
                 NativeImageBackedTexture texture = new NativeImageBackedTexture(image);
                 pendingImages.remove(image); // NativeImageBackedTexture now owns it.
@@ -208,8 +213,8 @@ public final class ConfigManager {
         Settings.Rule rule = source.rule();
         try {
             return new CompiledRule(rule.style(), safe(rule.items()).stream().map(Settings::glob).toList(),
-                    safe(rule.tags()).stream().map(t -> TagKey.of(RegistryKeys.ITEM, new Identifier(t))).toList(),
-                    List.copyOf(safe(rule.rarities())), NbtMatcher.compile(rule.nbt()));
+                    safe(rule.tags()).stream().map(t -> TagKey.of(RegistryKeys.ITEM, VersionApi.id(t))).toList(),
+                    List.copyOf(safe(rule.rarities())), NbtMatcher.compile(rule.nbt()), ComponentMatcher.compile(rule.components()));
         } catch (RuntimeException e) {
             throw new IllegalArgumentException(source.source() + ": " + e.getMessage(), e);
         }
@@ -218,12 +223,13 @@ public final class ConfigManager {
     public LoadedStyle select(ItemStack stack) {
         Snapshot snapshot = current;
         if (snapshot == null || !snapshot.settings.enabled() || stack.isEmpty()) return null;
-        LoadedStyle base = selectBase(snapshot, stack);
+        var customData = VersionApi.customData(stack);
+        LoadedStyle base = selectBase(snapshot, stack, customData);
         if (snapshot.decorationRules.isEmpty()) return base;
         String id = Registries.ITEM.getId(stack.getItem()).toString();
         // All matching rules contribute. Keep each ID once, favoring the highest priority.
         var selected = new LinkedHashSet<String>();
-        selection: for (var rule : snapshot.decorationRules) if (rule.condition.matches(stack, id)) {
+        selection: for (var rule : snapshot.decorationRules) if (rule.condition.matches(stack, id, customData)) {
             for (String decoration : rule.decorations) {
                 selected.add(decoration);
                 if (selected.size() == 64) break selection;
@@ -237,14 +243,14 @@ public final class ConfigManager {
         return new LoadedStyle(base.style(), base.texture(), base.inlineTextures(), List.copyOf(overlays));
     }
 
-    private LoadedStyle selectBase(Snapshot snapshot, ItemStack stack) {
+    private LoadedStyle selectBase(Snapshot snapshot, ItemStack stack, NbtCompound customData) {
         String key = snapshot.settings.nbtStyleKey();
-        if (!key.isEmpty() && stack.hasNbt() && stack.getNbt().contains(key, NbtElement.STRING_TYPE)) {
-            LoadedStyle override = snapshot.styles.get(LegacyPresets.resolve(stack.getNbt().getString(key), snapshot.styles.keySet()));
+        if (!key.isEmpty() && customData != null && customData.contains(key, NbtElement.STRING_TYPE)) {
+            LoadedStyle override = snapshot.styles.get(LegacyPresets.resolve(customData.getString(key), snapshot.styles.keySet()));
             if (override != null) return override;
         }
         String id = Registries.ITEM.getId(stack.getItem()).toString();
-        for (CompiledRule rule : snapshot.rules) if (rule.matches(stack, id)) return snapshot.styles.get(rule.style);
+        for (CompiledRule rule : snapshot.rules) if (rule.matches(stack, id, customData)) return snapshot.styles.get(rule.style);
         return snapshot.styles.get(snapshot.settings.defaultStyle());
     }
     public String styleNames() { return current == null ? "" : String.join(", ", current.styles.keySet().stream().sorted().toList()); }

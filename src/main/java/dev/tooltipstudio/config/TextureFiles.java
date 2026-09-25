@@ -1,5 +1,6 @@
 package dev.tooltipstudio.config;
 
+import dev.tooltipstudio.compat.VersionApi;
 import net.minecraft.resource.InputSupplier;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourcePack;
@@ -35,7 +36,7 @@ public final class TextureFiles {
             return Files.newInputStream(texture);
         }
         var location = location(reference);
-        var canonical = new Identifier(location.namespace(), location.path().toLowerCase(Locale.ROOT));
+        var canonical = VersionApi.id(location.namespace(), location.path().toLowerCase(Locale.ROOT));
         if (location.path().equals(canonical.getPath())) {
             return resources.getResource(canonical)
                     .orElseThrow(() -> missing(reference)).getInputStream();
@@ -84,7 +85,7 @@ public final class TextureFiles {
         try { exact = pack.openRoot(("assets/" + namespace + "/" + path).split("/")); }
         catch (IllegalArgumentException | UnsupportedOperationException unsupportedPath) { exact = null; }
         return exact != null ? exact : pack.open(ResourceType.CLIENT_RESOURCES,
-                new Identifier(namespace, path.toLowerCase(Locale.ROOT)));
+                VersionApi.id(namespace, path.toLowerCase(Locale.ROOT)));
     }
 
     public static InputSupplier<InputStream> openDirectory(Path root, String namespace, String path) {

@@ -29,7 +29,7 @@ class TextureFilesTest {
                 out.putNextEntry(new ZipEntry(entry.getKey())); out.write(entry.getValue().getBytes(StandardCharsets.UTF_8)); out.closeEntry();
             }
         }
-        return new ZipResourcePack.ZipBackedFactory(file, false).open(name);
+        return TestPacks.zip(name, file);
     }
     private String read(ResourceManager manager, String reference) throws Exception {
         try (var in = TextureFiles.open(manager, directory, reference)) { return new String(in.readAllBytes(), StandardCharsets.UTF_8); }

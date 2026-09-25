@@ -1,0 +1,28 @@
+// Developer-only integration test; never included in the distributed JAR.
+sourceSets {
+    smoke {
+        java.srcDirs = [rootProject.file('src/modernSmoke/java'), rootProject.file(minecraftTarget == '1.21.2' ? 'src/noShulkerSmoke/java' : 'src/modernShulkerSmoke/java')]
+        resources.srcDirs = [rootProject.file('src/modernSmoke/resources')]
+        compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+    }
+}
+loom {
+    mods {
+        tooltipstudio { sourceSet sourceSets.main }
+        tooltipstudio_smoke { sourceSet sourceSets.smoke }
+    }
+    runs {
+        smoke {
+            client()
+            name "Tooltip Studio ${minecraftTarget} component and rendering smoke"
+            source sourceSets.smoke
+            vmArg '-Dtooltipstudio.smoke=true'
+            vmArg "-Dtooltipstudio.packFormat=${minecraftTarget == '1.21.1' ? 34 : minecraftTarget == '1.21.4' ? 46 : 42}"
+            programArgs '--width', '1280', '--height', '900'
+            runDir project.findProperty('smokeRunDir') ?: 'run-smoke'
+        }
+    }
+}
+
+processSmokeResources { from(rootProject.file('examples/modern-commands.json')) }

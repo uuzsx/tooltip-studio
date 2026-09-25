@@ -133,7 +133,7 @@ class SegmentedTextTest {
         Path file = directory.resolve("assets/tooltipstudio/decorations/labels/artifact.json");
         Files.createDirectories(file.getParent()); Files.writeString(file, EXAMPLE);
         try (var resources = new LifecycledResourceManagerImpl(ResourceType.CLIENT_RESOURCES,
-                List.of(new DirectoryResourcePack("segments", directory, false)))) {
+                List.of(TestPacks.directory("segments", directory, false)))) {
             var d = PackDefinitions.load(resources).decorations().get("labels/artifact");
             assertEquals(2, d.segments().size()); assertNull(d.texture());
         }

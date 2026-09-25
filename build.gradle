@@ -1,117 +1,112 @@
 plugins {
-    id 'fabric-loom' version '1.6.12'
+    id 'fabric-loom' version '1.9.2' apply false
     id 'maven-publish'
 }
 
-version = "${project.mod_version}+${project.minecraft_version}"
-group = project.maven_group
-base { archivesName = project.archives_base_name }
-
-repositories {
-    mavenCentral()
-    maven { url = 'https://api.modrinth.com/maven' }
-    maven { url = 'https://maven.shedaniel.me/' }
-}
-dependencies {
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    include(implementation(annotationProcessor('io.github.llamalad7:mixinextras-fabric:0.4.1')))
-    modCompileOnly 'maven.modrinth:shulkerboxtooltip:r6EhfuUa'
-    if (project.hasProperty('compatShulker')) {
-        modRuntimeOnly 'maven.modrinth:shulkerboxtooltip:r6EhfuUa'
-        modRuntimeOnly 'me.shedaniel.cloth:cloth-config-fabric:13.0.121'
-    }
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-processResources {
-    filteringCharset = 'UTF-8'
-    inputs.property 'resourceEncoding', filteringCharset
-    // Display the mod version exactly; the archive filename also identifies its Minecraft target.
-    inputs.property 'version', project.mod_version
-    filesMatching('fabric.mod.json') { expand 'version': project.mod_version }
-}
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-    options.release = 17
-}
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-    withSourcesJar()
-}
-test { useJUnitPlatform() }
-jar {
-    from('LICENSE')
-    from('THIRD_PARTY_ASSETS.md')
-}
-
-tasks.register('exampleResourcePack', Zip) {
-    from('examples/resource-pack')
-    archiveFileName = "tooltip-studio-example-pack-${project.mod_version}+${project.minecraft_version}.zip"
-    destinationDirectory = layout.buildDirectory.dir('resourcepacks')
-}
-tasks.register('decorationResourcePack', Zip) {
-    from('examples/decoration-pack')
-    archiveFileName = "tooltip-studio-decoration-pack-${project.mod_version}+${project.minecraft_version}.zip"
-    destinationDirectory = layout.buildDirectory.dir('resourcepacks')
-}
-tasks.register('advancedDecorationResourcePack', Zip) {
-    from('examples/advanced-decoration-pack')
-    archiveFileName = "tooltip-studio-advanced-decoration-pack-${project.mod_version}+${project.minecraft_version}.zip"
-    destinationDirectory = layout.buildDirectory.dir('resourcepacks')
-}
-tasks.register('segmentedTextResourcePack', Zip) {
-    from('examples/segmented-text-pack')
-    archiveFileName = "tooltip-studio-segmented-text-pack-${project.mod_version}+${project.minecraft_version}.zip"
-    destinationDirectory = layout.buildDirectory.dir('resourcepacks')
-}
-
-tasks.register('beginnerResourcePack', Zip) {
-    from('examples/beginner-pack')
-    archiveFileName = "tooltip-studio-beginner-pack-${project.mod_version}+${project.minecraft_version}.zip"
-    destinationDirectory = layout.buildDirectory.dir('resourcepacks')
-}
-
-tasks.register('animatedDecorationResourcePack', Zip) {
-    from('examples/animated-decoration-pack')
-    archiveFileName = "tooltip-studio-animated-decoration-pack-${project.mod_version}+${project.minecraft_version}.zip"
-    destinationDirectory = layout.buildDirectory.dir('resourcepacks')
-}
-
-tasks.named('assemble') { dependsOn tasks.named('exampleResourcePack'), tasks.named('decorationResourcePack'), tasks.named('advancedDecorationResourcePack'), tasks.named('segmentedTextResourcePack'), tasks.named('beginnerResourcePack'), tasks.named('animatedDecorationResourcePack') }
-
-// Developer-only rendering smoke test; excluded from the distributable jar.
-sourceSets {
-    smoke {
-        compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
-        runtimeClasspath += sourceSets.main.runtimeClasspath
-    }
-}
-loom {
-    mods {
-        tooltipstudio { sourceSet sourceSets.main }
-        tooltipstudio_smoke { sourceSet sourceSets.smoke }
-    }
-    runs {
-        poster {
-            client()
-            name 'Tooltip Studio item demo capture'
-            source sourceSets.smoke
-            vmArg '-Dtooltipstudio.poster=true'
-            programArgs '--width', '1280', '--height', '720'
-            runDir 'run-smoke'
+def targets = [
+    '1.20.4': ['1.20.4+build.3', '0.97.2+1.20.4', 'r6EhfuUa', '13.0.121', 22],
+    '1.21.1': ['1.21.1+build.3', '0.116.17+1.21.1', 'NSrItCES', '15.0.140', 34],
+    '1.21.2': ['1.21.2+build.1', '0.106.1+1.21.2', null, null, 42],
+    '1.21.3': ['1.21.3+build.2', '0.114.1+1.21.3', 'lyWqI3Rl', '16.0.143', 42],
+    '1.21.4': ['1.21.4+build.8', '0.119.4+1.21.4', 'zZfEoJB1', '17.0.144', 46]
+]
+allprojects {
+    apply plugin: 'fabric-loom'
+    apply plugin: 'maven-publish'
+    def mc = project == rootProject ? '1.20.4' : project.name.substring(2)
+    def target = targets[mc]
+    def legacy = mc == '1.20.4'
+    ext.minecraftTarget = mc
+    version = "${rootProject.mod_version}+${mc}"
+    group = rootProject.maven_group
+    base { archivesName = rootProject.archives_base_name }
+    repositories {
+        mavenCentral()
+        exclusiveContent {
+            forRepository { maven { name = 'FabricModules'; url = 'https://maven.fabricmc.net/' } }
+            filter { includeGroupByRegex('net\\.fabricmc.*') }
         }
-        smoke {
-            client()
-            name 'Tooltip Studio rendering smoke test'
-            source sourceSets.smoke
-            vmArg '-Dtooltipstudio.smoke=true'
-            programArgs '--width', '1280', '--height', '900'
-            runDir project.findProperty('smokeRunDir') ?: 'run-smoke'
+        exclusiveContent {
+            forRepository { maven { name = 'ModrinthMods'; url = 'https://api.modrinth.com/maven' } }
+            filter { includeGroup('maven.modrinth') }
+        }
+        maven { url = 'https://maven.shedaniel.me/' }
+    }
+    // Remapped dependencies are generated locally by Loom, never published to remote Maven repositories.
+    repositories.configureEach { repository ->
+        if (repository instanceof org.gradle.api.artifacts.repositories.MavenArtifactRepository && repository.url.scheme != 'file') {
+            repository.content { excludeGroupByRegex('net_fabricmc_yarn_.*') }
         }
     }
+    dependencies {
+        minecraft "com.mojang:minecraft:${mc}"
+        mappings "net.fabricmc:yarn:${target[0]}:v2"
+        modImplementation "net.fabricmc:fabric-loader:${project.findProperty('loader_version') ?: '0.16.14'}"
+        modImplementation "net.fabricmc.fabric-api:fabric-api:${target[1]}"
+        include(implementation(annotationProcessor('io.github.llamalad7:mixinextras-fabric:0.4.1')))
+        if (target[2] != null) {
+            modCompileOnly "maven.modrinth:shulkerboxtooltip:${target[2]}"
+            if (project.hasProperty('compatShulker') && (!project.hasProperty('mc') || project.property('mc') == mc)) {
+                modRuntimeOnly "maven.modrinth:shulkerboxtooltip:${target[2]}"
+                if (legacy) modRuntimeOnly "me.shedaniel.cloth:cloth-config-fabric:${target[3]}"
+            }
+        }
+        testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    }
+    sourceSets {
+        main {
+            java.srcDirs = [rootProject.file('src/main/java'), rootProject.file("src/platform/${legacy ? 'legacy' : 'modern'}/java"), rootProject.file("src/platform/${legacy || mc == '1.21.1' ? 'early' : 'late'}/java")]
+            java.srcDir rootProject.file("src/platform/${target[2] == null ? 'no-sbt' : legacy ? 'sbt-legacy' : mc == '1.21.1' ? 'sbt-modern' : 'sbt-late'}/java")
+            resources.srcDirs = [rootProject.file('src/main/resources')]
+        }
+        test {
+            java.srcDirs = [rootProject.file('src/test/java'), rootProject.file("src/platform/${legacy ? 'legacy' : 'modern'}/test")]
+        }
+    }
+    processResources {
+        filteringCharset = 'UTF-8'
+        inputs.properties(version: rootProject.mod_version, minecraft: mc, java: legacy ? 17 : 21, loader_min: legacy ? '0.15.11' : '0.16.14')
+        filesMatching('tooltipstudio.mixins.json') { expand(java: legacy ? 17 : 21) }
+        filesMatching('fabric.mod.json') { expand(version: rootProject.mod_version, minecraft: mc, java: legacy ? 17 : 21, loader_min: legacy ? '0.15.11' : '0.16.14') }
+    }
+    tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8'; options.release = legacy ? 17 : 21 }
+    java {
+        sourceCompatibility = legacy ? JavaVersion.VERSION_17 : JavaVersion.VERSION_21
+        targetCompatibility = legacy ? JavaVersion.VERSION_17 : JavaVersion.VERSION_21
+        withSourcesJar()
+    }
+    test { useJUnitPlatform(); workingDir = rootProject.projectDir }
+    jar { from(rootProject.file('LICENSE')); from(rootProject.file('THIRD_PARTY_ASSETS.md')) }
+    def packs = [example: 'resource-pack', decoration: 'decoration-pack', advancedDecoration: 'advanced-decoration-pack', segmentedText: 'segmented-text-pack', beginner: 'beginner-pack', animatedDecoration: 'animated-decoration-pack']
+    if (!legacy) packs.component = 'component-pack'
+    def modernCommandsFile = rootProject.file('examples/modern-commands.json')
+    def modernCommands = new groovy.json.JsonSlurper().parse(modernCommandsFile, 'UTF-8')
+    packs.each { key, dir ->
+        def packTask = tasks.register("${key}ResourcePack", Zip) {
+            from(rootProject.file("examples/${dir}"))
+            filteringCharset = 'UTF-8'
+            inputs.file(modernCommandsFile)
+            inputs.properties(mc: mc, modVersion: rootProject.mod_version, packFormat: target[4])
+            filesMatching('README.md') {
+                filter { line ->
+                    def updated = legacy ? line : modernCommands.getOrDefault(line, line)
+                    updated = updated.replaceAll(/1\.[0-9]+(?:\.[0-9]+)?\+1\.20\.4/, "${rootProject.mod_version}+${mc}")
+                            .replace('Tooltip Studio 1.7', "Tooltip Studio ${rootProject.mod_version}")
+                            .replace('Tooltip Studio 1.8', "Tooltip Studio ${rootProject.mod_version}")
+                            .replace('（1.8）', "（${rootProject.mod_version}）")
+                    if (!legacy) updated = updated.replace('1.20.4', mc).replace('pack_format=22', "pack_format=${target[4]}")
+                    updated
+                }
+            }
+            if (!legacy) from(rootProject.file('docs/1.21-components.md')) { into 'docs' }
+            filesMatching('pack.mcmeta') { filter { line -> line.replaceAll(/"pack_format": [0-9]+/, '"pack_format": ' + target[4]) } }
+            archiveFileName = "tooltip-studio-${dir == 'resource-pack' ? 'example-pack' : dir}-${rootProject.mod_version}+${mc}.zip"
+            destinationDirectory = layout.buildDirectory.dir('resourcepacks')
+        }
+        tasks.named('assemble') { dependsOn packTask }
+    }
+    if (legacy) apply from: rootProject.file('gradle/legacy-smoke.gradle')
+    else apply from: rootProject.file('gradle/modern-smoke.gradle')
 }
+tasks.register('buildAllVersions') { dependsOn allprojects.collect { it.tasks.named('build') } }

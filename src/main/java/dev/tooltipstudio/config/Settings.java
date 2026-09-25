@@ -13,10 +13,19 @@ public record Settings(int schemaVersion, boolean enabled, String defaultStyle,
         this(schemaVersion, enabled, defaultStyle, nbtStyleKey, rules, List.of());
     }
     public record Rule(String style, int priority, List<String> items, List<String> tags,
-                       List<String> rarities, Map<String, JsonElement> nbt) {}
+                       List<String> rarities, Map<String, JsonElement> nbt, Map<String, JsonElement> components) {
+        public Rule(String style, int priority, List<String> items, List<String> tags,
+                    List<String> rarities, Map<String, JsonElement> nbt) {
+            this(style, priority, items, tags, rarities, nbt, null);
+        }
+    }
     public record DecorationRule(List<String> decorations, int priority, List<String> items, List<String> tags,
-                                 List<String> rarities, Map<String, JsonElement> nbt) {
-        public Rule condition() { return new Rule(null, priority, items, tags, rarities, nbt); }
+                                 List<String> rarities, Map<String, JsonElement> nbt, Map<String, JsonElement> components) {
+        public DecorationRule(List<String> decorations, int priority, List<String> items, List<String> tags,
+                              List<String> rarities, Map<String, JsonElement> nbt) {
+            this(decorations, priority, items, tags, rarities, nbt, null);
+        }
+        public Rule condition() { return new Rule(null, priority, items, tags, rarities, nbt, components); }
     }
 
     public void validate(Set<String> styles) {
@@ -48,15 +57,31 @@ public record Settings(int schemaVersion, boolean enabled, String defaultStyle,
 
     private static void validateCondition(Rule rule) {
         Style.require(hasValues(rule.items) || hasValues(rule.tags) || hasValues(rule.rarities)
-                        || (rule.nbt != null && !rule.nbt.isEmpty()),
-                "rule requires items, tags, rarities, or nbt");
+                        || (rule.nbt != null && !rule.nbt.isEmpty())
+                        || (rule.components != null && !rule.components.isEmpty()),
+                "rule requires items, tags, rarities, nbt, or components");
         validateNbt(rule.nbt);
+        validateComponents(rule.components);
         if (rule.items != null) for (String item : rule.items)
             Style.require(item != null && item.matches("[a-z0-9_.*-]+:[a-z0-9_./*-]+"), "invalid item pattern: " + item);
         if (rule.tags != null) for (String tag : rule.tags)
             Style.require(tag != null && tag.matches("[a-z0-9_.-]+:[a-z0-9_./-]+"), "invalid tag: " + tag);
         if (rule.rarities != null) for (String rarity : rule.rarities)
             Style.require(Set.of("common", "uncommon", "rare", "epic").contains(rarity), "invalid rarity: " + rarity);
+    }
+
+    /** Component IDs map to scalar alternatives or an object of paths inside the encoded component. */
+    public static void validateComponents(Map<String, JsonElement> components) {
+        if (components == null) return;
+        Style.require(components.size() <= 64, "components supports at most 64 component IDs per rule");
+        components.forEach((id, value) -> {
+            Style.require(id != null && id.matches("[a-z0-9_.-]+:[a-z0-9_./-]+"), "invalid component ID: " + id);
+            Style.require(value != null && !value.isJsonNull(), "components " + id + ": value cannot be null");
+            if (value.isJsonObject()) {
+                Style.require(!value.getAsJsonObject().isEmpty(), "components " + id + ": path object cannot be empty");
+                validateNbt(value.getAsJsonObject().asMap());
+            } else validateNbt(Map.of(id, value));
+        });
     }
 
     public static boolean hasValues(List<?> list) { return list != null && !list.isEmpty(); }

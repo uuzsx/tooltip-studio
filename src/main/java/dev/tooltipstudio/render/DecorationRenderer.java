@@ -1,5 +1,6 @@
 package dev.tooltipstudio.render;
 
+import dev.tooltipstudio.compat.RenderApi;
 import dev.tooltipstudio.config.ConfigManager.LoadedStyle;
 import dev.tooltipstudio.config.DecorationSpec;
 import dev.tooltipstudio.config.Style;
@@ -67,7 +68,7 @@ final class DecorationRenderer {
                         context.drawText(font, entry.lines().get(i), entry.textInset(), i * font.fontHeight, d.textColor(), d.hasShadow());
                 } else {
                     var r = entry.region();
-                    context.drawTexture(entry.texture(), 0, 0, r.width(), r.height(), (float) r.u(), (float) r.v(),
+                    RenderApi.texture(context, entry.texture(), 0, 0, r.width(), r.height(), (float) r.u(), (float) r.v(),
                             r.width(), r.height(), entry.textureWidth(), entry.textureHeight());
                 }
             } finally {

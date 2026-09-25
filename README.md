@@ -274,3 +274,10 @@
 同一资源包内先找原样路径，再尝试全小写路径；多个资源包仍按优先级选择。不任意猜测其他大小写组合。
 命名空间在引用时统一为小写，资源包的 `assets/tooltipstudio/` 目录继续使用小写；样式与装饰的 JSON 文件名、ID 仍按原规则使用小写，NBT 匹配值仍区分大小写。
 本地 `local:Valley/FireR.PNG` 保留文件名原样，`local:` 前缀可用大小写。资源包改动后按 F3+T，本地配置改动后用 `/tooltipstudio reload`；缺失贴图仍会保留上一份有效配置。
+
+
+## Minecraft 1.21.1～1.21.4 与组件匹配（1.9.0）
+
+分别提供对应版本 JAR；新版使用 Java 21、Fabric Loader 0.16.14+ 和对应版本 Fabric API。旧的 `nbt: {"Monumenta.Location": "forest"}` 会自动读取 `minecraft:custom_data`，原来的自定义数据规则无需改路径。新增 `components` 条件，可直接匹配原版或其他模组的持久化组件；样式规则和装饰规则均可使用。
+
+具体写法、测试命令、示例资源包和版本差异见 [1.21 组件匹配与迁移说明](docs/1.21-components.md)。1.20.4 版本继续保留，使用旧 `nbt` 条件。

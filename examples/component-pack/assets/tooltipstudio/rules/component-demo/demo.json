@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "rules": [
+    {
+      "style": "component-demo/forest",
+      "priority": 300,
+      "nbt": {
+        "Monumenta.Location": "forest"
+      }
+    }
+  ],
+  "decorationRules": [
+    {
+      "decorations": [
+        "component-demo/artifact"
+      ],
+      "priority": 300,
+      "components": {
+        "minecraft:custom_data": {
+          "Monumenta.Location": "forest",
+          "Monumenta.Tier": "artifact"
+        },
+        "minecraft:rarity": "epic"
+      }
+    }
+  ]
+}
